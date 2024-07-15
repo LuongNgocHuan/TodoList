@@ -1,8 +1,7 @@
 // cSpell:ignore todos, uuidv
 import { useEffect, useState } from "react";
 import CreateToDo from "./components/CreateToDo";
-import { Routes, Route, Link } from "react-router-dom";
-import SetCode from "./pages/setCode";
+import { Link, Outlet } from "react-router-dom";
 import { v4 as uuidv4 } from "uuid";
 import ToDoList from "./components/ToDoList";
 import axios, { AxiosResponse } from "axios";
@@ -11,6 +10,9 @@ export type TodoType = { id: string; name: string; isCompleted: boolean, };
 
 function App() {
   const [toDoList, setToDoList] = useState<TodoType[]>([]);
+
+  console.log(toDoList)
+  
 
   const [newToDoString, setNewToDoString] = useState("");
 
@@ -35,13 +37,14 @@ function App() {
           name: todo.todo,
           isCompleted: todo.completed
         }));
+        console.log("fetchToDoList")
         setToDoList(todosReturn);
       } catch (error) {
         console.error("Error fetching to-dos:", error)
       }
     }
     fetchToDoList()
-  }, [])
+  },[ ])
 
 
 
@@ -228,6 +231,12 @@ function App() {
   };
 
 
+  // localstores
+
+  useEffect( () => {
+    localStorage.setItem('toDoList', JSON.stringify(toDoList))
+  },[toDoList])
+
 
   return (
     <>
@@ -254,12 +263,10 @@ function App() {
       </div>
 
 
-      <div >
-        <Link to="/set-code">Click here</Link>
+      <div className="flex justify-center mt-10" >
+        <Link to="/set-code" className="ml-4 p-2 bg-slate-700 text-white rounded-lg">Click here to go set-code</Link>
       </div>
-      <Routes>
-        <Route path="/set-code" element={<SetCode />} />
-      </Routes>
+      <Outlet/>
 
     </>
   );
