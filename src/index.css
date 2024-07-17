@@ -2,10 +2,6 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  /* background-color: rgb(60, 60, 60); */
-}
-
 
 /* input - setcode */
 .label-inline {
@@ -15,16 +11,13 @@ body {
   transition: 0.2s ease;
   pointer-events: none;
   padding: 0 6px;
-  /* opacity: 0.4; */
 }
 
-.input-trans:focus + .label-inline,
+.input-trans:focus + .label-inline ,
 .input-trans:not(:placeholder-shown) + .label-inline {
   background-color: #fff;
   color: rgba(0, 0, 0, 0.6);
   transform: translate(-6px, -26px) scale(0.88);
+
   z-index: 1111;
 }
-
-
-

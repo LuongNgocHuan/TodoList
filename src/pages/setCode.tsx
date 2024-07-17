@@ -48,18 +48,9 @@ const SetCode = () => {
     alert("set-code successfully!");
     setSubmitting(false);
   // chuyen huong ve trang todo khi da them code thanh cong
-    navigate('/', { replace: true });
+    navigate('/pin-code', { replace: true });
 
   };
-
- 
-
-  // if (window.history.state && window.history.state.idx > 0) {
-  //   navigate(-1);
-  // } else {
-  //   navigate('/', { replace: true });
-  // }
-
 
 
   return (

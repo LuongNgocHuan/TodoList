@@ -1,8 +1,9 @@
 import { useState } from "react";
-import { Formik, Form, Field, FieldProps, FormikProps } from "formik";
+import { Formik, Form, Field, FieldProps, FormikProps, FormikHelpers, } from "formik";
 import * as Yup from "yup";
 import { usePinCodeValidation } from "../hooks/usePincode";
 import { useNavigate } from "react-router-dom";
+
 
 type FormValues = {
     pinCode: string[];
@@ -38,8 +39,15 @@ const PinCode = () => {
         pinCode: Array(6).fill(""),
     };
 
-    const handleSubmit = (values: { pinCode: string[] }) => {
+    const handleSubmit = (values: { pinCode: string[] }, { setValues }: FormikHelpers<FormValues>) => {
         const enteredPinCode = values.pinCode.join("")
+        // not working
+        // if (!enteredPinCode) {
+        //     alert("You need to enter the pin code");
+        //     return;
+        // }
+
+
         if (pinCode === enteredPinCode) {
             alert("PIN code matched!")
             // sau khi so sanh (true) back ve todo
@@ -47,12 +55,16 @@ const PinCode = () => {
 
         } else {
             alert("PIN code does not match!")
-            
+            // sau khi so sanh (false) fill ""
+            setValues({ pinCode: Array(6).fill("") })
         }
+
+
+
     };
-    
-   
-    
+
+
+
     // nhap
     const handleInput = (
         e: React.ChangeEvent<HTMLInputElement>,
@@ -71,9 +83,10 @@ const PinCode = () => {
                     `input[name="pinCode.${index + 1}"]`
                 );
                 if (nextInput) nextInput.focus();
-            } 
+            }
         }
     };
+
 
     // paste
     const handlePaste = (
@@ -83,28 +96,56 @@ const PinCode = () => {
         // bo hanh vi dan mac dinh cua web
         e.preventDefault();
         // get value tu clipboard / chi lay 6 ki tu dau
-        const pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
-        // chia chuoi thanh mang va tao mang moi
-        const updatedPinCode = [...pasteData.split("")];
+        let pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
+        pasteData = pasteData.replace(/[^0-9]/g, "");
+        // chia chuoi thanh mang va tao mang moi / tu dong them ky tu rong khi khong du 6 ky tu
+        const updatedPinCode = [...pasteData.split(""), ...Array(6 - pasteData.length).fill("")];
         form.setValues({
-            pinCode: updatedPinCode.map((char) => char),
+            // pinCode: updatedPinCode.map((char) => char),
+            pinCode: updatedPinCode.concat(Array(6 - updatedPinCode.length).fill("")),
         });
         // tu dong chuyen con tro den o cuoi cung
+        const lastInputIndex = pasteData.length - 1;
         const lastInput = document.querySelector<HTMLInputElement>(
-            `input[name="pinCode.5"]`
+            // `input[name="pinCode.5"]`
+            `input[name="pinCode.${lastInputIndex}"]`
         );
         if (lastInput) {
             lastInput.focus();
         }
     };
 
-    // xoa
+    // xoa / chan
     const handleKeyDown = (
         e: React.KeyboardEvent<HTMLInputElement>,
         field: FieldProps["field"],
         form: FormikProps<FormValues>,
         index: number
     ) => {
+
+
+        // chan cac ky tu khong phai la so
+
+        if (!/[0-9\b]|^(Meta|KeyV|Backspace)$/.test(e.key) &&
+            // cmd + v = false
+            !(e.metaKey && e.key === "v")) {
+            e.preventDefault();
+        }
+        console.log(!/[0-9\b]|^(Meta|KeyV|Backspace)$/.test(e.key) &&
+            // cmd + v = false
+            !(e.metaKey && e.key === "v"));
+
+        // if (!/[0-9]/.test(e.key) && e.key !== "Backspace" && e.key !== "Meta" && e.key !== "KeyV") {
+        //     e.preventDefault();
+
+        // if (!/[\d\b]|^(KeyV|Meta|Backspace)$/.test(e.key)) {
+        //     e.preventDefault();
+        // }
+
+
+
+
+
         // chuyen con tro den o truoc do khi backspace
         if (e.key === "Backspace" && !field.value && index > 0) {
             const prevInput = document.querySelector<HTMLInputElement>(
@@ -115,6 +156,13 @@ const PinCode = () => {
                 form.setFieldValue(`pinCode.${index - 1}`, "");
             }
         }
+        // enter
+        if (e.key === "Enter") {
+            handleSubmit(form.values, form);
+        }
+        // else {
+        //     alert("You need to enter the pin code");
+        // }
     };
 
     return (
@@ -141,8 +189,8 @@ const PinCode = () => {
                             <Form>
                                 <div className="flex justify-center items-center gap-4 mb-10 ml-16 ">
                                     {values.pinCode.map((_, index) => (
-                                        <div key={index} className="flex flex-col items-center">
-                                            <div>
+                                        <div key={index} className="relative flex flex-col items-center">
+                                            <div className="">
                                                 <Field name={`pinCode.${index}`}>
                                                     {({ field, form }: FieldProps) => (
                                                         <input
@@ -161,38 +209,16 @@ const PinCode = () => {
                                                             onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) =>
                                                                 handleKeyDown(e, field, form, index)
                                                             }
+
                                                         />
                                                     )}
                                                 </Field>
-                                                {/* <ErrorMessage
-                                                    name={`pinCode.${index}`}
-                                                    component="div"
-                                                    className="text-red-500 text-xs mt-1"
-                                                /> */}
+
                                             </div>
+
                                         </div>
                                     ))}
 
-                                    {/* <input
-                                        className="size-10 border-2 border-gray-500 rounded-lg text-center focus:outline-none"
-                                        type="text"
-                                    />
-                                    <input
-                                        className="size-10 border-2 border-gray-500 rounded-lg text-center focus:outline-none"
-                                        type="text"
-                                    />
-                                    <input
-                                        className="size-10 border-2 border-gray-500 rounded-lg text-center focus:outline-none"
-                                        type="text"
-                                    />
-                                    <input
-                                        className="size-10 border-2 border-gray-500 rounded-lg text-center focus:outline-none"
-                                        type="text"
-                                    />
-                                    <input
-                                        className="size-10 border-2 border-gray-500 rounded-lg text-center focus:outline-none"
-                                        type="text"
-                                    /> */}
 
                                     <img
                                         className="size-6 cursor-pointer ml-6"
