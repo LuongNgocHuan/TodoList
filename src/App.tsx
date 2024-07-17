@@ -13,7 +13,6 @@ function App() {
 
   console.log(toDoList)
   
-
   const [newToDoString, setNewToDoString] = useState("");
 
   const [editTodo, setEditTodo] = useState<TodoType | null>(null);
@@ -263,8 +262,10 @@ function App() {
       </div>
 
 
-      <div className="flex justify-center mt-10" >
+      <div className="flex justify-center mt-10 " >
         <Link to="/set-code" className="ml-4 p-2 bg-slate-700 text-white rounded-lg">Click here to go set-code</Link>
+        <Link to="/pin-code" className="ml-4 p-2 bg-slate-700 text-white rounded-lg">Click here to go pin-code</Link>
+
       </div>
       <Outlet/>
 

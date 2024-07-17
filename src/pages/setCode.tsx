@@ -1,6 +1,8 @@
 
 import { Form, Field, ErrorMessage, Formik, FormikHelpers } from "formik";
 import * as Yup from "yup";
+import { useNavigate } from 'react-router-dom';
+
 
 type FormValues = {
   currentCode: string;
@@ -8,11 +10,14 @@ type FormValues = {
   confirmNewCode: string;
   storedCode: string;
 };
-const setCode = () => {
 
-  // khoi tao gia tri ban dau
+const SetCode = () => {
+
+  // khoi tao initialValues formik
 
   const storedCode = localStorage.getItem("code") || ""
+
+  const navigate = useNavigate();
 
   const initialValues: FormValues = {
     currentCode: "",
@@ -21,14 +26,14 @@ const setCode = () => {
     storedCode: storedCode,
   };
 
-  // Khai báo validation schema với Yup
+  // Khai bao validation schema Yup
   const validationSchema = Yup.object().shape({
-    currentCode: Yup.string().when("storedCode", {
+    currentCode: storedCode ? Yup.string().when("storedCode", {
       is: (storedCode: string) => !!storedCode,
-      then: () => Yup.string()
+      then:  () => Yup.string()
         .matches(/^\d{6}$/, "Current code must be exactly 6 digits")
         .required("Current code is required"),
-    }),
+    }) : Yup.string(),
     newCode: Yup.string()
       .matches(/^\d{6}$/, "New code must be exactly 6 digits")
       .required("New code is required"),
@@ -42,7 +47,20 @@ const setCode = () => {
     localStorage.setItem("code", values.newCode);
     alert("set-code successfully!");
     setSubmitting(false);
+  // chuyen huong ve trang todo khi da them code thanh cong
+    navigate('/', { replace: true });
+
   };
+
+ 
+
+  // if (window.history.state && window.history.state.idx > 0) {
+  //   navigate(-1);
+  // } else {
+  //   navigate('/', { replace: true });
+  // }
+
+
 
   return (
     <>
@@ -51,77 +69,90 @@ const setCode = () => {
           initialValues={initialValues}
           validationSchema={validationSchema}
           onSubmit={handleSubmit}
+          enableReinitialize
         >
-          {({ isSubmitting }) => (
-            <Form className=" bg-white h-[400px] w-[600px] rounded-2xl shadow-2xl border-2 px-10 ">
+          {({ isSubmitting, errors, touched }) => (
+            <Form className=" bg-white  w-[600px] h-auto pb-8 rounded-2xl shadow-2xl border-2 px-10 ">
               <div className=" flex flex-col justify-center items-center my-10 ">
                 <img
                   className="size-16"
-                  src="/public/img/avt.png"
+                  src="/src/img/avt.png"
                   alt="userImg"
                 />
                 <h1 className="uppercase font-bold text-2xl"> Welcome</h1>
               </div>
 
-              <div className="flex flex-col mb-10 gap-4">
+              <div className="relative flex flex-col mb-10 gap-8">
                 {initialValues.storedCode && (
-                  <div className="flex justify-center items-center gap-1 border-b-2">
-                    <img
-                      className="size-4 "
-                      src="/public/img/code.png"
-                      alt="password"
-                    />
-                    <Field
-                      className="focus:outline-none w-72"
-                      type="text"
-                      name="currentCode"
-                      placeholder="Enter current code"
-                    />
+                  <div className="">
+                    <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.currentCode && touched.currentCode ? 'border-red-500' : 'border-gray-300'}`}>
+                      <img
+                        className="size-4 "
+                        src="/src/img/code.png"
+                        alt="password"
+                      />
+                      <Field
+
+                        className="input-trans focus:outline-none w-full h-12 rounded-lg"
+                        type="text"
+                        name="currentCode"
+                        placeholder=""
+                      />
+                      <label className="label-inline">Enter current code</label>
+
+                    </div>
                     <ErrorMessage
                       name="currentCode"
                       component="div"
-                      className="text-red-500 text-sm mt-1"
+                      className="absolute text-red-500 text-sm mt-1 ml-2"
                     />
                   </div>
                 )}
 
 
-                <div className="flex justify-center items-center gap-1 border-b-2 ">
-                  <img
-                    className="size-4 "
-                    src="/public/img/code.png"
-                    alt="name"
-                  />
+                <div className="">
+                  <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.newCode && touched.newCode ? 'border-red-500' : 'border-gray-300'}`}>
+                    <img
+                      className="size-4 "
+                      src="/src/img/code.png"
+                      alt="name"
+                    />
 
-                  <Field
-                    className="focus:outline-none w-72"
-                    type="text"
-                    name="newCode"
-                    placeholder="New code"
-                  />
+                    <Field
+                      className="input-trans focus:outline-none w-full h-12 rounded-lg"
+                      type="text"
+                      name="newCode"
+                      placeholder=""
+                    />
+                    <label className="label-inline">New code</label>
+
+                  </div>
                   <ErrorMessage
                     name="newCode"
                     component="div"
-                    className="text-red-500 text-sm mt-1"
+                    className="absolute text-red-500 text-sm mt-1 ml-2 "
                   />
                 </div>
 
-                <div className="flex justify-center items-center gap-1 border-b-2 ">
-                  <img
-                    className="size-4 "
-                    src="/public/img/code.png"
-                    alt="email"
-                  />
-                  <Field
-                    className="focus:outline-none w-72"
-                    type="text"
-                    name="confirmNewCode"
-                    placeholder="Confirm new code"
-                  />
+                <div className="" >
+                  <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.confirmNewCode && touched.confirmNewCode ? 'border-red-500' : 'border-gray-300'}`}>
+                    <img
+                      className="size-4 "
+                      src="/src/img/code.png"
+                      alt="email"
+                    />
+                    <Field
+                      className="input-trans focus:outline-none  w-full h-12 rounded-lg"
+                      type="text"
+                      name="confirmNewCode"
+                      placeholder=""
+                    />
+                    <label className="label-inline">Confirm new code</label>
+                  </div>
                   <ErrorMessage
                     name="confirmNewCode"
                     component="div"
-                    className="text-red-500 text-sm mt-1"
+                    className="absolute text-red-500 text-sm mt-1 ml-2"
                   />
 
                 </div>
@@ -129,7 +160,7 @@ const setCode = () => {
 
               <div className="flex justify-center">
                 <button
-                  className="h-10 w-80 bg-green-600 rounded-2xl shadow-lg text-white "
+                  className="h-10 w-80 bg-green-600 rounded-2xl shadow-lg shadow-slate-400 text-white "
                   type="submit"
                   disabled={isSubmitting}
                 >
@@ -144,4 +175,4 @@ const setCode = () => {
   );
 };
 
-export default setCode;
+export default SetCode;
