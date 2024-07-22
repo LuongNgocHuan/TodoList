@@ -9,6 +9,7 @@ import axios, { AxiosResponse } from "axios";
 export type TodoType = { id: string; name: string; isCompleted: boolean, };
 
 function App() {
+
   const [toDoList, setToDoList] = useState<TodoType[]>([]);
 
   console.log(toDoList)
@@ -260,13 +261,12 @@ function App() {
           editTodo={editTodo}
         />
       </div>
-
-
       <div className="flex justify-center mt-10 gap-8 " >
-        <Link to="/set-code" className="flex justify-center items-center px-4 gap-2  p-2 bg-green-600 text-white rounded-xl shadow-lg shadow-slate-400"> <img className="size-4" src="/src/img/code.png" alt=""/> Click here to go set-code</Link>
+        <Link to="/set-code" className="flex justify-center items-center px-4 gap-2  p-2 bg-green-600 text-white rounded-xl shadow-lg shadow-slate-400"> <img className="size-4" src="/src/img/code.png" alt="" /> Click here to go set-code</Link>
         <Link to="/pin-code" className="flex justify-center items-center px-4 gap-2  p-2 bg-orange-500 text-white rounded-xl shadow-lg shadow-slate-400"> <img className="size-4" src="/src/img/hidden.png" alt="" /> Click here to go pin-code</Link>
       </div>
       <Outlet />
+
 
     </>
   );
