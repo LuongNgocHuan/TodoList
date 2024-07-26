@@ -10,7 +10,7 @@ type FormValues = {
     pinCode: string[];
 }
 
-const PinCode = (props?: {onSuccess: () => void}) => {
+const PinCode = ({ onSuccess }: { onSuccess?: () => void}) => {
     const [isHidden, setIsHidden] = useState(true);
 
     // su dung hook usePincode
@@ -52,7 +52,10 @@ const PinCode = (props?: {onSuccess: () => void}) => {
         if (pinCode === enteredPinCode) {
             alert("PIN code matched!")
             // sau khi so sanh (true) back ve todo
-            props?.onSuccess()
+            if(onSuccess){
+
+                onSuccess()
+            }
             navigate("/", { replace: true });
 
         } else {

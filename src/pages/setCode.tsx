@@ -1,7 +1,7 @@
 
 import { Form, Field, ErrorMessage, Formik, FormikHelpers } from "formik";
 import * as Yup from "yup";
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 
 
 type FormValues = {
@@ -12,9 +12,12 @@ type FormValues = {
 };
 
 const SetCode = () => {
+  const { state } = useLocation();
+  console.log(state);
+
 
   // khoi tao initialValues formik
-
+  //  returnpath 
   const storedCode = localStorage.getItem("code") || ""
 
   const navigate = useNavigate();
@@ -30,7 +33,7 @@ const SetCode = () => {
   const validationSchema = Yup.object().shape({
     currentCode: storedCode ? Yup.string().when("storedCode", {
       is: (storedCode: string) => !!storedCode,
-      then:  () => Yup.string()
+      then: () => Yup.string()
         .matches(/^\d{6}$/, "Current code must be exactly 6 digits")
         .required("Current code is required"),
     }) : Yup.string(),
@@ -47,8 +50,12 @@ const SetCode = () => {
     localStorage.setItem("code", values.newCode);
     alert("set-code successfully!");
     setSubmitting(false);
-  // chuyen huong ve trang todo khi da them code thanh cong
-    navigate('/pin-code', { replace: true });
+    // chuyen huong ve trang todo khi da them code thanh cong
+    if (state?.returnUrl) {
+      navigate(state.returnUrl, { replace: true });
+    } else {
+      navigate('/pin-code', { replace: true });
+    }
 
   };
 

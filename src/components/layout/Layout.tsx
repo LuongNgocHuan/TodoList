@@ -1,39 +1,33 @@
+import { Navigate, useLocation } from "react-router-dom";
+import PinCode from "../../pages/PinCode";
+import { useDispatch, useSelector } from "react-redux";
+import { setPinMatched } from "../../redux/Actions";
+import { pinMatchedSelector } from "../../redux/Selectors";
 
-import { Route, Navigate, Routes } from 'react-router-dom';
-import PinCode from '../../pages/PinCode';
-import SetCode from '../../pages/SetCode';
-import App from '../../App';
-import { useState } from 'react';
 
-const Layout = () => {
-  const [pinMatched, setPinMatched] = useState(false)
-  return (
-    <div className="">
-      <Routes>
-        <Route path="/set-code" element={<SetCode />} />
-        <Route path="/pin-code" element={<PinCode onSuccess={()=> setPinMatched(true)}/>} />
-        <Route path="/" element={pinMatched ? <ProtectedApp /> :  <Navigate to="/pin-code" replace />} />
-      </Routes>
-    </div>
-  );
-};
+type LayoutProps = {
+  component: React.ComponentType;
+}
 
-const ProtectedApp = () => {
-  const pinCode = localStorage.getItem('code');
+const Layout = ({ component: Component }: LayoutProps) => {
+  const { pathname } = useLocation();
 
-  const [inputPin, setInputPin] = useState(false)
+  const pinCode = localStorage.getItem("code");
+  const pinMatched = useSelector(pinMatchedSelector);
+  const dispatch = useDispatch()
+
 
   if (!pinCode) {
-    return <Navigate to="/set-code" replace />;
-  } 
+    return <Navigate to="/set-code" replace state={{ returnUrl: pathname }} />;
+  }
+  console.log(pathname);
 
-  if(!inputPin){
-    <Route path="/pin-code" element={<PinCode onSuccess={ () => setInputPin(true)} />} />
+
+  if (!pinMatched) {
+    return <PinCode onSuccess={() => dispatch(setPinMatched(true))} />;
   }
 
-  return <App/>;
-  
-  
+  return <Component />;
 };
 
 export default Layout;
