@@ -1,5 +1,4 @@
 import { Routes, Route } from 'react-router-dom'
-// import Layout from './components/layout/Layout'
 import NoPage from './pages/NoPage'
 import SetCode from './pages/SetCode'
 import PinCode from './pages/PinCode'
