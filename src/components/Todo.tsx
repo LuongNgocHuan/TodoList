@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { TodoType } from "../App";
+import { TodoType } from "../pages/TodoPage";
 import { KeyboardEvent } from "react";
 
 const Icon = ({

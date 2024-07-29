@@ -1,5 +1,5 @@
 import Todo from "./Todo";
-import { TodoType } from "../App";
+import { TodoType } from "../pages/TodoPage";
 
 const ToDoList = ({
     toDoList,
