@@ -1,6 +1,10 @@
 import React, { useState, useRef, useEffect } from "react";
 import { TodoType } from "../pages/TodoPage";
 import { KeyboardEvent } from "react";
+import dayjs from "dayjs";
+import relativeTime from "dayjs/plugin/relativeTime";
+
+dayjs.extend(relativeTime)
 
 const Icon = ({
     todoId,
@@ -11,6 +15,8 @@ const Icon = ({
     isCompleted: boolean;
     updateIsCompleted: (todoId: string) => void;
 }) => {
+
+
     return (
         <div
             onClick={() => {
@@ -52,9 +58,7 @@ const Icon = ({
     );
 };
 export const Todo = ({
-    todoId,
-    name,
-    isCompleted,
+    todo,
     updateIsCompleted,
     deleteToDo,
 
@@ -62,10 +66,9 @@ export const Todo = ({
     saveEditedToDo,
     cancelEdit,
     editMode,
+
 }: {
-    todoId: string;
-    name: string;
-    isCompleted: boolean;
+    todo: TodoType
     updateIsCompleted: (todoId: string) => void;
     deleteToDo: (todoId: string) => void;
 
@@ -74,13 +77,18 @@ export const Todo = ({
     cancelEdit: () => void;
     editMode: boolean;
 }) => {
-
+    const { id, name, isCompleted, iTime } = todo
     // edit
     const [editedName, setEditedName] = useState(name);
-    const inputRef = useRef<HTMLInputElement>(null);
+    const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
         if (editMode && inputRef.current) {
             inputRef.current.focus();
+        }
+        const textarea = inputRef.current;
+        if (textarea) {
+            textarea.focus();
+            textarea.setSelectionRange(textarea.value.length, textarea.value.length);
         }
     }, [editMode]);
 
@@ -93,62 +101,71 @@ export const Todo = ({
 
 
 
-    const handleNameChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
         setEditedName(e.target.value);
     };
 
     const handleSaveClick = () => {
         saveEditedToDo({
-            id: todoId,
+            id: id,
             name: editedName,
             isCompleted,
+            iTime,
         });
         cancelEdit();
     };
 
 
     // enter on keyboard
-    const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
+    const handleKeyPress = (e: KeyboardEvent<HTMLTextAreaElement>) => {
         if (e.key === 'Enter') {
             handleSaveClick();
         }
     };
 
+
+    const itemTime = dayjs(iTime).format('MMM DD, YYYY')
+
     return (
+
 
         <>
             <div className="flex justify-center ml-4 mr-4">
-                <div className="relative w-1/2 flex items-center justify-between border-gray-500 border-2 border-opacity-20  rounded-lg shadow-md min-h-10 h-auto pl-2 py-2 mb-4 ">
+                <div className="relative w-1/2 flex items-center justify-between border-gray-500 border-2 border-opacity-20  rounded-lg shadow-md min-h-14 min-w-96 h-auto pl-2 py-2 mb-4 ">
                     <div className="flex gap-4">
                         {/* add */}
                         <button>
-                            {
                                 <Icon
                                     isCompleted={isCompleted}
-                                    todoId={todoId}
+                                    todoId={id}
                                     updateIsCompleted={updateIsCompleted}
                                 />
-                            }
                         </button>
                         {editMode ? (
-                            <input
-                                type="text"
-                                className="focus:outline-none w-96  bg-transparent"
+                            <textarea
+
+                                className="focus:outline-none xl:w-96 lg:w-72 md:w-40 h-20 bg-transparent "
                                 value={editedName}
                                 onChange={handleNameChange}
                                 onKeyPress={handleKeyPress}
                                 ref={inputRef}
                             />
+
                         ) : (
                             <div className={isCompleted ? "line-through opacity-40" : ""}>{name}</div>
                         )}
                     </div>
                     <div className=" flex gap-1 mr-2">
+
+                        {!editMode && (
+                            <div className=" flex justify-center items-center mr-2 text-xs opacity-40 font-semibold w-max">{itemTime}</div>
+                        )}
+
                         {/* delete */}
                         <button
-                            className=" bg-red-500 text-white px-2 py-1 rounded-lg "
+                            className={isCompleted ? "hidden" : " bg-red-500 text-white px-2 py-1 rounded-lg max-h-8"}
                             type="button"
-                            onClick={() => deleteToDo(todoId)}
+                            onClick={() => deleteToDo(id)}
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="size-6">
                                 <path strokeLinecap="round" strokeLinejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
@@ -160,7 +177,7 @@ export const Todo = ({
                             <div className="flex gap-1">
                                 {/* save */}
                                 <button
-                                    className="bg-green-600 text-white px-2 py-1 rounded-lg"
+                                    className="bg-green-600 text-white px-2 py-1 rounded-lg max-h-8"
                                     type="button"
                                     onClick={handleSaveClick}
 
@@ -172,7 +189,7 @@ export const Todo = ({
                                 </button>
                                 {/* cancel */}
                                 <button
-                                    className="bg-blue-500 text-white px-2 py-1 rounded-lg"
+                                    className="bg-blue-500 text-white px-2 py-1 rounded-lg max-h-8"
                                     type="button"
                                     onClick={cancelEdit}
                                 >
@@ -186,10 +203,10 @@ export const Todo = ({
                         ) : (
                             // edit
                             <button
-                                className="bg-blue-500 text-white px-2 py-1 rounded-lg"
+                                className={isCompleted ? "hidden" : "bg-blue-500 text-white px-2 py-1 rounded-lg max-h-8"}
                                 type="button"
                                 onClick={() => {
-                                    editToDo({ id: todoId, name, isCompleted });
+                                    editToDo({ id: id, name, isCompleted, iTime });
                                     if (inputRef.current) {
                                         inputRef.current.focus();
                                     }

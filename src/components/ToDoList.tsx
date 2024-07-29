@@ -27,10 +27,8 @@ const ToDoList = ({
                 {toDoList.map((todo) => {
                     return (
                         <Todo
-                            todoId={todo.id}
+                            todo ={todo}
                             key={todo.id}
-                            name={todo.name}
-                            isCompleted={todo.isCompleted}
                             updateIsCompleted={updateIsCompleted}
 
                             deleteToDo={deleteToDo}

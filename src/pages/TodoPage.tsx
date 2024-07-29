@@ -6,7 +6,7 @@ import { v4 as uuidv4 } from "uuid";
 import ToDoList from "../components/ToDoList";
 import axios, { AxiosResponse } from "axios";
 
-export type TodoType = { id: string; name: string; isCompleted: boolean };
+export type TodoType = { id: string; name: string; isCompleted: boolean; iTime: string };
 
 function TodoPage() {
   const [toDoList, setToDoList] = useState<TodoType[]>([]);
@@ -37,6 +37,7 @@ function TodoPage() {
           // id: uuidv4(),
           name: todo.todo,
           isCompleted: todo.completed,
+          iTime: new Date().toISOString(),
         }));
         console.log("fetchToDoList");
         setToDoList(todosReturn);
@@ -56,6 +57,7 @@ function TodoPage() {
       id: uuidv4(),
       name: newToDoString,
       isCompleted: false,
+      iTime: new Date().toISOString()
     };
 
     try {
@@ -129,6 +131,7 @@ function TodoPage() {
                 ...todo,
                 name: editedTodo.name,
                 isCompleted: editedTodo.isCompleted,
+                iTime: editedTodo.iTime,
               }
             : todo
         )
