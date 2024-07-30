@@ -11,7 +11,7 @@ type FormValues = {
   storedCode: string;
 };
 
-const SetCode = () => {
+const SetCodePage = () => {
   const { state } = useLocation();
   console.log(state);
 
@@ -173,4 +173,4 @@ const SetCode = () => {
   );
 };
 
-export default SetCode;
+export default SetCodePage;
