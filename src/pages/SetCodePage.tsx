@@ -74,7 +74,7 @@ const SetCodePage = () => {
               <div className=" flex flex-col justify-center items-center my-10 ">
                 <img
                   className="size-16"
-                  src="/src/img/avt.png"
+                  src="../assets/img/avt.png"
                   alt="userImg"
                 />
                 <h1 className="uppercase font-bold text-2xl"> Welcome</h1>
@@ -86,7 +86,7 @@ const SetCodePage = () => {
                     <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.currentCode && touched.currentCode ? 'border-red-500' : 'border-gray-300'}`}>
                       <img
                         className="size-4 "
-                        src="/src/img/code.png"
+                        src="../assets/img/code.png"
                         alt="password"
                       />
                       <Field
@@ -112,7 +112,7 @@ const SetCodePage = () => {
                   <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.newCode && touched.newCode ? 'border-red-500' : 'border-gray-300'}`}>
                     <img
                       className="size-4 "
-                      src="/src/img/code.png"
+                      src="../assets/img/code.png"
                       alt="name"
                     />
 
@@ -136,7 +136,7 @@ const SetCodePage = () => {
                   <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.confirmNewCode && touched.confirmNewCode ? 'border-red-500' : 'border-gray-300'}`}>
                     <img
                       className="size-4 "
-                      src="/src/img/code.png"
+                      src="../assets/img/code.png"
                       alt="email"
                     />
                     <Field

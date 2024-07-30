@@ -180,7 +180,7 @@ function TodoPage() {
           className="flex justify-center items-center px-4 gap-2  p-2 bg-green-600 text-white rounded-xl shadow-lg shadow-slate-400"
         >
           {" "}
-          <img className="size-4" src="/src/img/code.png" alt="" /> Click here
+          <img className="size-4" src="../assets/img/code.png" alt="" /> Click here
           to go set-code
         </Link>
         <Link
@@ -188,7 +188,7 @@ function TodoPage() {
           className="flex justify-center items-center px-4 gap-2  p-2 bg-orange-500 text-white rounded-xl shadow-lg shadow-slate-400"
         >
           {" "}
-          <img className="size-4" src="/src/img/hidden.png" alt="" /> Click here
+          <img className="size-4" src="../assets/img/hidden.png" alt="" /> Click here
           to go pin-code
         </Link>
       </div>
