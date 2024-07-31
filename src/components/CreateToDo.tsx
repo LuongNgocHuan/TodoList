@@ -1,13 +1,15 @@
 import { ChangeEvent, KeyboardEvent } from "react";
 import List from "../assets/img/list.png"
+import { AddTD, LoadingAM } from "./SVG/SVG";
 
 type Props = {
   newToDoString: string;
   onNewToDoChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onAddBtn: () => void;
+  loading: boolean
 };
 
-const CreateToDo = ({ newToDoString, onNewToDoChange, onAddBtn }: Props) => {
+const CreateToDo = ({ newToDoString, onNewToDoChange, onAddBtn, loading }: Props) => {
   // enter on keyboard
   const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
@@ -38,21 +40,11 @@ const CreateToDo = ({ newToDoString, onNewToDoChange, onAddBtn }: Props) => {
             className="bg-green-600 text-white px-2 rounded-lg"
             type="button"
             onClick={onAddBtn}
+            disabled={loading}
           >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              fill="none"
-              viewBox="0 0 24 24"
-              strokeWidth={1.5}
-              stroke="currentColor"
-              className="size-6 "
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                d="M12 9v6m3-3H9m12 0a9 9 0 1 1-18 0 9 9 0 0 1 18 0Z"
-              />
-            </svg>
+            {loading ? (LoadingAM
+            ) : (AddTD)}
+
           </button>
         </div>
         <div className="flex justify-center">

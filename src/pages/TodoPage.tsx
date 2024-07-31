@@ -7,11 +7,16 @@ import ToDoList from "../components/ToDoList";
 import axios, { AxiosResponse } from "axios";
 
 // img
-import Code from "../assets/img/code.png"
-import Hidden from "../assets/img/hidden.png"
+import Code from "../assets/img/code.png";
+import Hidden from "../assets/img/hidden.png";
 
-
-export type TodoType = { id: string; name: string; isCompleted: boolean; iTime: string };
+export type TodoType = {
+  id: string;
+  name: string;
+  isCompleted: boolean;
+  iTime: string;
+  loading: boolean
+};
 
 function TodoPage() {
   const [toDoList, setToDoList] = useState<TodoType[]>([]);
@@ -21,6 +26,10 @@ function TodoPage() {
   const [newToDoString, setNewToDoString] = useState("");
 
   const [editTodo, setEditTodo] = useState<TodoType | null>(null);
+
+  const [loading, setLoading] = useState(false);
+
+
 
   // API get list
   type TodoAPI = {
@@ -43,6 +52,7 @@ function TodoPage() {
           name: todo.todo,
           isCompleted: todo.completed,
           iTime: new Date().toISOString(),
+          loading: false
         }));
         console.log("fetchToDoList");
         setToDoList(todosReturn);
@@ -58,11 +68,14 @@ function TodoPage() {
   };
 
   const onAddBtn = async () => {
+    setLoading(true);
+
     const newToDoItem: TodoType = {
       id: uuidv4(),
       name: newToDoString,
       isCompleted: false,
-      iTime: new Date().toISOString()
+      iTime: new Date().toISOString(),
+      loading: false
     };
 
     try {
@@ -77,6 +90,8 @@ function TodoPage() {
       setNewToDoString("");
     } catch (error) {
       console.error("Error adding new to-do:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -106,13 +121,37 @@ function TodoPage() {
   // delete / API delete
 
   const deleteToDo = async (todoId: string) => {
+    // setLoadDelete(true);
+    // try {
+    //   await axios.delete("https://dummyjson.com/todos/1");
+    //   setToDoList((prevState) =>
+    //     prevState.filter((todo) => todo.id !== todoId)
+    //   );
+    // } catch (error) {
+    //   console.log("Error deleting to-do:", error);
+    // } finally {
+    //   setLoadDelete(false)
+    // }
+
+    setToDoList((prevState) =>
+      prevState.map((todo) =>
+        todo.id === todoId ? { ...todo, loading: true } : todo
+      )
+    );
+  
     try {
-      await axios.delete("https://dummyjson.com/todos/1");
+      await axios.delete(`https://dummyjson.com/todos/1`);
       setToDoList((prevState) =>
         prevState.filter((todo) => todo.id !== todoId)
       );
     } catch (error) {
       console.log("Error deleting to-do:", error);
+    } finally {
+      setToDoList((prevState) =>
+        prevState.map((todo) =>
+          todo.id === todoId ? { ...todo, loading: false } : todo
+        )
+      );
     }
   };
 
@@ -133,11 +172,11 @@ function TodoPage() {
         prevState.map((todo) =>
           todo.id === editedTodo.id
             ? {
-                ...todo,
-                name: editedTodo.name,
-                isCompleted: editedTodo.isCompleted,
-                iTime: editedTodo.iTime,
-              }
+              ...todo,
+              name: editedTodo.name,
+              isCompleted: editedTodo.isCompleted,
+              iTime: editedTodo.iTime,
+            }
             : todo
         )
       );
@@ -165,6 +204,7 @@ function TodoPage() {
           newToDoString={newToDoString}
           onNewToDoChange={onNewToDoChange}
           onAddBtn={onAddBtn}
+          loading={loading}
         />
 
         <ToDoList
@@ -185,16 +225,15 @@ function TodoPage() {
           className="flex justify-center items-center px-4 gap-2  p-2 bg-green-600 text-white rounded-xl shadow-lg shadow-slate-400"
         >
           {" "}
-          <img className="size-4" src={Code} alt="" /> Click here
-          to go set-code
+          <img className="size-4" src={Code} alt="" /> Click here to go set-code
         </Link>
         <Link
           to="/pin-code"
           className="flex justify-center items-center px-4 gap-2  p-2 bg-orange-500 text-white rounded-xl shadow-lg shadow-slate-400"
         >
           {" "}
-          <img className="size-4" src={Hidden} alt="" /> Click here
-          to go pin-code
+          <img className="size-4" src={Hidden} alt="" /> Click here to go
+          pin-code
         </Link>
       </div>
       <Outlet />
