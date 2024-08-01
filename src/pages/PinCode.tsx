@@ -6,14 +6,6 @@ import { useNavigate } from "react-router-dom";
 import { isValidNumber } from "../hooks/isValidNumber";
 
 
-// img
-import Password from "../assets/img/password.png"
-import Hidden from "../assets/img/hidden.png"
-import View from "../assets/img//view.png"
-
-
-
-
 type FormValues = {
     pinCode: string[];
 }
@@ -211,7 +203,7 @@ const PinCode = ({ onSuccess }: { onSuccess?: () => void}) => {
                     <div className="flex flex-col justify-center items-center my-10 ">
                         <img
                             className="size-16"
-                            src={Password}
+                            src="../assets/img/password.png"
                             alt="pinCodeImg"
                         />
                         <h1 className="uppercase font-bold text-2xl"> Welcome</h1>
@@ -261,7 +253,7 @@ const PinCode = ({ onSuccess }: { onSuccess?: () => void}) => {
 
                                     <img
                                         className="size-6 cursor-pointer ml-6"
-                                        src={isHidden ? Hidden : View}
+                                        src={isHidden ? "../assets/img/hidden.png" : "../assets/img/view.png"}
                                         
                                         alt="hiddenImg"
                                         onClick={toggleShowHide}
