@@ -1,20 +1,61 @@
-import { ChangeEvent, KeyboardEvent } from "react";
+import { KeyboardEvent, useState } from "react";
+import List from "../assets/img/list.png"
 import { AddTD, LoadingAM } from "./SVG/SVG";
+import { v4 as uuidv4 } from "uuid";
+import { TodoType } from "../pages/TodoPage";
+import axios from "axios";
+
+
 
 type Props = {
-  newToDoString: string;
-  onNewToDoChange: (e: ChangeEvent<HTMLInputElement>) => void;
-  onAddBtn: () => void;
-  loading: boolean
+  // newToDoString: string;
+  // onNewToDoChange: (e: ChangeEvent<HTMLInputElement>) => void;
+  onCreateSuccess:(newItem:TodoType) => void;
 };
 
-const CreateToDo = ({ newToDoString, onNewToDoChange, onAddBtn, loading }: Props) => {
+const CreateToDo = ({ onCreateSuccess}: Props) => {
+  const [loading, setLoading] = useState(false);
+  const [newToDoString, setNewToDoString] = useState("");
+
+  
+  const onAddBtn = async () => {
+    setLoading(true);
+
+    const newToDoItem: TodoType = {
+      id: uuidv4(),
+      name: newToDoString,
+      isCompleted: false,
+      iTime: new Date().toISOString(),
+      // loading: false
+    };
+
+    try {
+      await axios.post("https://dummyjson.com/todos/add", {
+        // id: newToDoItem.id.toString(),
+        todo: newToDoItem.name,
+        completed: newToDoItem.isCompleted,
+        userId: 1,
+      });
+
+      onCreateSuccess(newToDoItem);
+      setNewToDoString("");
+    } catch (error) {
+      console.error("Error adding new to-do:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
   // enter on keyboard
   const handleKeyPress = (e: KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter") {
       onAddBtn();
     }
   };
+
+  const onNewToDoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewToDoString(e.target.value);
+  };
+
 
   return (
     <>

@@ -2,7 +2,6 @@
 import { useEffect, useState } from "react";
 import CreateToDo from "../components/CreateToDo";
 import { Link, Outlet } from "react-router-dom";
-import { v4 as uuidv4 } from "uuid";
 import ToDoList from "../components/ToDoList";
 import axios, { AxiosResponse } from "axios";
 
@@ -15,7 +14,7 @@ export type TodoType = {
   name: string;
   isCompleted: boolean;
   iTime: string;
-  loading: boolean
+  // loading: boolean
 };
 
 function TodoPage() {
@@ -23,12 +22,12 @@ function TodoPage() {
 
   console.log(toDoList);
 
-  const [newToDoString, setNewToDoString] = useState("");
 
   const [editTodo, setEditTodo] = useState<TodoType | null>(null);
 
-  const [loading, setLoading] = useState(false);
-
+  const onCreateSuccess= (newItem:TodoType) => {
+    setToDoList([newItem, ...toDoList]);
+  }
 
 
   // API get list
@@ -52,7 +51,7 @@ function TodoPage() {
           name: todo.todo,
           isCompleted: todo.completed,
           iTime: new Date().toISOString(),
-          loading: false
+          // loading: false
         }));
         console.log("fetchToDoList");
         setToDoList(todosReturn);
@@ -63,37 +62,10 @@ function TodoPage() {
     fetchToDoList();
   }, []);
 
-  const onNewToDoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewToDoString(e.target.value);
-  };
+  // const onNewToDoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   setNewToDoString(e.target.value);
+  // };
 
-  const onAddBtn = async () => {
-    setLoading(true);
-
-    const newToDoItem: TodoType = {
-      id: uuidv4(),
-      name: newToDoString,
-      isCompleted: false,
-      iTime: new Date().toISOString(),
-      loading: false
-    };
-
-    try {
-      await axios.post("https://dummyjson.com/todos/add", {
-        // id: newToDoItem.id.toString(),
-        todo: newToDoItem.name,
-        completed: newToDoItem.isCompleted,
-        userId: 1,
-      });
-
-      setToDoList([newToDoItem, ...toDoList]);
-      setNewToDoString("");
-    } catch (error) {
-      console.error("Error adding new to-do:", error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const updateIsCompleted = async (todoId: string) => {
     const updatedTodo = toDoList.find((todo) => todo.id === todoId);
@@ -132,12 +104,6 @@ function TodoPage() {
     // } finally {
     //   setLoadDelete(false)
     // }
-
-    setToDoList((prevState) =>
-      prevState.map((todo) =>
-        todo.id === todoId ? { ...todo, loading: true } : todo
-      )
-    );
   
     try {
       await axios.delete(`https://dummyjson.com/todos/1`);
@@ -201,10 +167,9 @@ function TodoPage() {
     <>
       <div className="">
         <CreateToDo
-          newToDoString={newToDoString}
-          onNewToDoChange={onNewToDoChange}
-          onAddBtn={onAddBtn}
-          loading={loading}
+          // newToDoString={newToDoString}
+          // onNewToDoChange={onNewToDoChange}
+          onCreateSuccess={onCreateSuccess}
         />
 
         <ToDoList

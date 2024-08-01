@@ -9,7 +9,6 @@ import {
   CompletedTrue,
   DeleteTD,
   EditTD,
-  LoadingAM,
   SaveTD,
 } from "./SVG/SVG";
 
@@ -53,13 +52,16 @@ export const Todo = ({
   deleteToDo: (todoId: string) => void;
 
   editToDo: (todo: TodoType) => void;
-  saveEditedToDo: (editedTodo: TodoType) => void;
+  saveEditedToDo: (editedTodo: TodoType) => Promise<void>;
   cancelEdit: () => void;
   editMode: boolean;
 }) => {
-  const { id, name, isCompleted, iTime, loading } = todo;
+  const { id, name, isCompleted, iTime } = todo;
   // edit
   const [editedName, setEditedName] = useState(name);
+  const [loading, setLoading] = useState(false);
+  
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
     if (editMode && inputRef.current) {
@@ -83,15 +85,17 @@ export const Todo = ({
     setEditedName(e.target.value);
   };
 
-  const handleSaveClick = () => {
-    saveEditedToDo({
+  const handleSaveClick = async () => {
+    setLoading(true)
+    await saveEditedToDo({
       id: id,
       name: editedName,
       isCompleted,
       iTime,
-      loading
+      // loading
     });
     cancelEdit();
+    setLoading(false)
   };
 
   // enter on keyboard
@@ -142,13 +146,13 @@ export const Todo = ({
               className={
                 isCompleted
                   ? "hidden"
-                  : " bg-red-500 text-white px-2 py-1 rounded-lg max-h-8"
+                  : " bg-gray-600 text-white px-2 py-1 rounded-lg max-h-8"
               }
               type="button"
               onClick={() => deleteToDo(id)}
               disabled={loading}
             >
-              {loading ? LoadingAM : DeleteTD}
+              {DeleteTD}
             </button>
 
             {editMode ? (
@@ -158,6 +162,7 @@ export const Todo = ({
                   className="bg-green-600 text-white px-2 py-1 rounded-lg max-h-8"
                   type="button"
                   onClick={handleSaveClick}
+                  disabled={loading}
                 >
                   {SaveTD}
                 </button>
@@ -166,6 +171,7 @@ export const Todo = ({
                   className="bg-blue-500 text-white px-2 py-1 rounded-lg max-h-8"
                   type="button"
                   onClick={cancelEdit}
+                  disabled={loading}
                 >
                   {CancleTD}
                 </button>
@@ -180,11 +186,12 @@ export const Todo = ({
                 }
                 type="button"
                 onClick={() => {
-                  editToDo({ id: id, name, isCompleted, iTime, loading });
+                  editToDo({ id: id, name, isCompleted, iTime });
                   if (inputRef.current) {
                     inputRef.current.focus();
                   }
                 }}
+                disabled={loading}
               >
                 {EditTD}
               </button>

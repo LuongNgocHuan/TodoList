@@ -16,7 +16,7 @@ const ToDoList = ({
     deleteToDo: (todoId: string) => void;
 
     editToDo: (todo: TodoType) => void;
-    saveEditedToDo: (editedTodo: TodoType) => void;
+    saveEditedToDo: (editedTodo: TodoType) => Promise<void>;
     cancelEdit: () => void;
     editTodo: TodoType | null;
 }) => {
