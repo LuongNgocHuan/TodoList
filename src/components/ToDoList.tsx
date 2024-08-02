@@ -4,39 +4,39 @@ import { TodoType } from "../pages/TodoPage";
 const ToDoList = ({
     toDoList,
     updateIsCompleted,
-    deleteToDo,
     editToDo,
     saveEditedToDo,
     cancelEdit,
-    editTodo,
+    currentEditTodo,
+    setToDoList
 }: {
     toDoList: TodoType[];
-    updateIsCompleted: (todoId: string) => void;
-
-    deleteToDo: (todoId: string) => void;
-
+    updateIsCompleted: (todoId: string) => Promise<void>;
     editToDo: (todo: TodoType) => void;
     saveEditedToDo: (editedTodo: TodoType) => Promise<void>;
     cancelEdit: () => void;
-    editTodo: TodoType | null;
+    currentEditTodo: TodoType | null;
+    setToDoList: React.Dispatch<React.SetStateAction<TodoType[]>>
+
 }) => {
-    
+
     return (
         <>
             <div>
                 {toDoList.map((todo) => {
                     return (
                         <Todo
-                            todo ={todo}
+                            todo={todo}
                             key={todo.id}
                             updateIsCompleted={updateIsCompleted}
 
-                            deleteToDo={deleteToDo}
+
 
                             editToDo={editToDo}
                             saveEditedToDo={saveEditedToDo}
                             cancelEdit={cancelEdit}
-                            editMode={editTodo?.id === todo.id}
+                            editMode={currentEditTodo?.id === todo.id}
+                            setToDoList={setToDoList}
                         />
                     );
                 })}

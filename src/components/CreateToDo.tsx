@@ -1,15 +1,12 @@
 import { KeyboardEvent, useState } from "react";
 import List from "../assets/img/list.png"
-import { AddTD, LoadingAM } from "./SVG/SVG";
+import { AddTD} from "./SVG/SVG";
 import { v4 as uuidv4 } from "uuid";
 import { TodoType } from "../pages/TodoPage";
 import axios from "axios";
-
-
+import classNames from "classnames";
 
 type Props = {
-  // newToDoString: string;
-  // onNewToDoChange: (e: ChangeEvent<HTMLInputElement>) => void;
   onCreateSuccess:(newItem:TodoType) => void;
 };
 
@@ -26,12 +23,10 @@ const CreateToDo = ({ onCreateSuccess}: Props) => {
       name: newToDoString,
       isCompleted: false,
       iTime: new Date().toISOString(),
-      // loading: false
     };
 
     try {
       await axios.post("https://dummyjson.com/todos/add", {
-        // id: newToDoItem.id.toString(),
         todo: newToDoItem.name,
         completed: newToDoItem.isCompleted,
         userId: 1,
@@ -68,6 +63,7 @@ const CreateToDo = ({ onCreateSuccess}: Props) => {
         </div>
         <div className="flex justify-center gap-2">
           <input
+            
             className="focus:outline-none pl-2 border-gray-500 border-2 border-opacity-20 rounded-lg shadow-md h-10 w-1/3"
             type="text"
             placeholder="Enter your to-dos"
@@ -77,13 +73,14 @@ const CreateToDo = ({ onCreateSuccess}: Props) => {
           />
 
           <button
-            className="bg-green-600 text-white px-2 rounded-lg"
+            className={classNames(" text-white px-2 rounded-lg",
+              {"bg-gray-600":loading, "bg-green-600":!loading}
+            )}
             type="button"
             onClick={onAddBtn}
             disabled={loading}
           >
-            {loading ? (LoadingAM
-            ) : (AddTD)}
+            {AddTD}
 
           </button>
         </div>

@@ -14,7 +14,7 @@ export type TodoType = {
   name: string;
   isCompleted: boolean;
   iTime: string;
-  // loading: boolean
+
 };
 
 function TodoPage() {
@@ -22,9 +22,9 @@ function TodoPage() {
 
   console.log(toDoList);
 
-
-  const [editTodo, setEditTodo] = useState<TodoType | null>(null);
-
+  // lưu trữ ToDo hiện tại đang được chỉnh sửa
+  const [currentEditTodo, setCurrentEditTodo] = useState<TodoType | null>(null);
+  
   const onCreateSuccess= (newItem:TodoType) => {
     setToDoList([newItem, ...toDoList]);
   }
@@ -47,11 +47,9 @@ function TodoPage() {
         );
         const todosReturn = response.data.todos.map((todo: TodoAPI) => ({
           id: todo.id.toString(),
-          // id: uuidv4(),
           name: todo.todo,
           isCompleted: todo.completed,
           iTime: new Date().toISOString(),
-          // loading: false
         }));
         console.log("fetchToDoList");
         setToDoList(todosReturn);
@@ -61,11 +59,6 @@ function TodoPage() {
     };
     fetchToDoList();
   }, []);
-
-  // const onNewToDoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-  //   setNewToDoString(e.target.value);
-  // };
-
 
   const updateIsCompleted = async (todoId: string) => {
     const updatedTodo = toDoList.find((todo) => todo.id === todoId);
@@ -90,39 +83,9 @@ function TodoPage() {
     }
   };
 
-  // delete / API delete
-
-  const deleteToDo = async (todoId: string) => {
-    // setLoadDelete(true);
-    // try {
-    //   await axios.delete("https://dummyjson.com/todos/1");
-    //   setToDoList((prevState) =>
-    //     prevState.filter((todo) => todo.id !== todoId)
-    //   );
-    // } catch (error) {
-    //   console.log("Error deleting to-do:", error);
-    // } finally {
-    //   setLoadDelete(false)
-    // }
-  
-    try {
-      await axios.delete(`https://dummyjson.com/todos/1`);
-      setToDoList((prevState) =>
-        prevState.filter((todo) => todo.id !== todoId)
-      );
-    } catch (error) {
-      console.log("Error deleting to-do:", error);
-    } finally {
-      setToDoList((prevState) =>
-        prevState.map((todo) =>
-          todo.id === todoId ? { ...todo, loading: false } : todo
-        )
-      );
-    }
-  };
-
+  // cập nhật trạng thái chỉnh sửa
   const editToDo = (todo: TodoType) => {
-    setEditTodo(todo);
+    setCurrentEditTodo(todo);
   };
 
   const saveEditedToDo = async (editedTodo: TodoType) => {
@@ -149,12 +112,12 @@ function TodoPage() {
     } catch (error) {
       console.error("Error saving edited to-do:", error);
     }
-    setEditTodo(null);
+    setCurrentEditTodo(null);
   };
 
   // cancel
   const cancelEdit = () => {
-    setEditTodo(null);
+    setCurrentEditTodo(null);
   };
 
   // localstores
@@ -167,21 +130,18 @@ function TodoPage() {
     <>
       <div className="">
         <CreateToDo
-          // newToDoString={newToDoString}
-          // onNewToDoChange={onNewToDoChange}
           onCreateSuccess={onCreateSuccess}
         />
 
         <ToDoList
           toDoList={toDoList}
           updateIsCompleted={updateIsCompleted}
-          // delete
-          deleteToDo={deleteToDo}
           // edit
           editToDo={editToDo}
           saveEditedToDo={saveEditedToDo}
           cancelEdit={cancelEdit}
-          editTodo={editTodo}
+          currentEditTodo={currentEditTodo}
+          setToDoList={setToDoList}
         />
       </div>
       <div className="flex justify-center mt-10 gap-8 ">

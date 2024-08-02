@@ -11,6 +11,8 @@ import {
   EditTD,
   SaveTD,
 } from "./SVG/SVG";
+import classNames from "classnames";
+import axios from "axios";
 
 dayjs.extend(relativeTime);
 
@@ -31,36 +33,43 @@ const Icon = ({
     >
       {isCompleted
         ? // true
-          CompletedTrue
+        CompletedTrue
         : // false
-          CompletedFalse}
+        CompletedFalse}
     </div>
   );
 };
 export const Todo = ({
   todo,
   updateIsCompleted,
-  deleteToDo,
+
 
   editToDo,
   saveEditedToDo,
   cancelEdit,
   editMode,
+  setToDoList
+
 }: {
   todo: TodoType;
-  updateIsCompleted: (todoId: string) => void;
-  deleteToDo: (todoId: string) => void;
+  updateIsCompleted: (todoId: string) => Promise<void>;
+
 
   editToDo: (todo: TodoType) => void;
   saveEditedToDo: (editedTodo: TodoType) => Promise<void>;
   cancelEdit: () => void;
   editMode: boolean;
+  setToDoList:React.Dispatch<React.SetStateAction<TodoType[]>>
+
+
+
 }) => {
   const { id, name, isCompleted, iTime } = todo;
   // edit
   const [editedName, setEditedName] = useState(name);
+
   const [loading, setLoading] = useState(false);
-  
+
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -92,7 +101,6 @@ export const Todo = ({
       name: editedName,
       isCompleted,
       iTime,
-      // loading
     });
     cancelEdit();
     setLoading(false)
@@ -106,6 +114,21 @@ export const Todo = ({
   };
 
   const itemTime = dayjs(iTime).format("MMM DD, YYYY");
+
+
+  const deleteToDo = async (todoId: string) => {
+    setLoading(true)
+    try {
+      await axios.delete("https://dummyjson.com/todos/1");
+      setToDoList((prevState) =>
+        prevState.filter((todo) => todo.id !== todoId)
+      );
+    } catch (error) {
+      console.log("Error deleting to-do:", error);
+    } finally {
+    setLoading(false)
+    }
+  };
 
   return (
     <>
@@ -143,11 +166,14 @@ export const Todo = ({
 
             {/* delete */}
             <button
-              className={
-                isCompleted
-                  ? "hidden"
-                  : " bg-gray-600 text-white px-2 py-1 rounded-lg max-h-8"
-              }
+              className={classNames(
+                "text-white px-2 py-1 rounded-lg max-h-8",
+                {
+                  hidden: isCompleted,
+                  "bg-gray-600": loading,
+                  "bg-red-600": !loading
+                }
+              )}
               type="button"
               onClick={() => deleteToDo(id)}
               disabled={loading}
@@ -159,7 +185,9 @@ export const Todo = ({
               <div className="flex gap-1">
                 {/* save */}
                 <button
-                  className="bg-green-600 text-white px-2 py-1 rounded-lg max-h-8"
+                  className={classNames(" text-white px-2 py-1 rounded-lg max-h-8",
+                    { "bg-gray-600": loading, "bg-green-600": !loading }
+                  )}
                   type="button"
                   onClick={handleSaveClick}
                   disabled={loading}
@@ -168,7 +196,14 @@ export const Todo = ({
                 </button>
                 {/* cancel */}
                 <button
-                  className="bg-blue-500 text-white px-2 py-1 rounded-lg max-h-8"
+                  className={classNames(
+                    "text-white px-2 py-1 rounded-lg max-h-8",
+                    {
+                      hidden: isCompleted,
+                      "bg-gray-600": loading,
+                      "bg-blue-600": !loading
+                    }
+                  )}
                   type="button"
                   onClick={cancelEdit}
                   disabled={loading}
@@ -179,11 +214,14 @@ export const Todo = ({
             ) : (
               // edit
               <button
-                className={
-                  isCompleted
-                    ? "hidden"
-                    : "bg-blue-500 text-white px-2 py-1 rounded-lg max-h-8"
-                }
+                className={classNames(
+                  "text-white px-2 py-1 rounded-lg max-h-8",
+                  {
+                    hidden: isCompleted,
+                    "bg-gray-600": loading,
+                    "bg-blue-600": !loading
+                  }
+                )}
                 type="button"
                 onClick={() => {
                   editToDo({ id: id, name, isCompleted, iTime });
