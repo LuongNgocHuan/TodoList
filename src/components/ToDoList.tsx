@@ -1,42 +1,19 @@
 import Todo from "./Todo";
-import { TodoType } from "../pages/TodoPage";
+import { RootState } from "../redux/Store";
+import { useSelector } from "react-redux";
 
-const ToDoList = ({
-    toDoList,
-    updateIsCompleted,
-    editToDo,
-    saveEditedToDo,
-    cancelEdit,
-    currentEditTodo,
-    setToDoList
-}: {
-    toDoList: TodoType[];
-    updateIsCompleted: (todoId: string) => Promise<void>;
-    editToDo: (todo: TodoType) => void;
-    saveEditedToDo: (editedTodo: TodoType) => Promise<void>;
-    cancelEdit: () => void;
-    currentEditTodo: TodoType | null;
-    setToDoList: React.Dispatch<React.SetStateAction<TodoType[]>>
-
-}) => {
-
+const ToDoList =  () => {
+    const todos = useSelector((state: RootState) => state.todos.todos);
+    const currentEditTodo = useSelector((state: RootState) => state.todos.currentEditTodo);
     return (
         <>
             <div>
-                {toDoList.map((todo) => {
+                {todos.map((todo) => {
                     return (
                         <Todo
                             todo={todo}
                             key={todo.id}
-                            updateIsCompleted={updateIsCompleted}
-
-
-
-                            editToDo={editToDo}
-                            saveEditedToDo={saveEditedToDo}
-                            cancelEdit={cancelEdit}
                             editMode={currentEditTodo?.id === todo.id}
-                            setToDoList={setToDoList}
                         />
                     );
                 })}

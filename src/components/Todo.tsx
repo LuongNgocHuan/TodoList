@@ -1,8 +1,11 @@
-import React, { useState, useRef, useEffect } from "react";
-import { TodoType } from "../pages/TodoPage";
-import { KeyboardEvent } from "react";
+import axios from "axios";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { deleteTodos, setCurrentEditTodo, TodoType, updateTodos } from "../redux/Slice";
+import { AppDispatch, RootState } from "../redux/Store";
 import {
   CancleTD,
   CompletedFalse,
@@ -11,10 +14,9 @@ import {
   EditTD,
   SaveTD,
 } from "./SVG/SVG";
-import classNames from "classnames";
-import axios from "axios";
 
 dayjs.extend(relativeTime);
+
 
 const Icon = ({
   todoId,
@@ -41,35 +43,19 @@ const Icon = ({
 };
 export const Todo = ({
   todo,
-  updateIsCompleted,
-
-
-  editToDo,
-  saveEditedToDo,
-  cancelEdit,
   editMode,
-  setToDoList
+}:
+  {
+    todo: TodoType;
+    editMode: boolean;
 
-}: {
-  todo: TodoType;
-  updateIsCompleted: (todoId: string) => Promise<void>;
-
-
-  editToDo: (todo: TodoType) => void;
-  saveEditedToDo: (editedTodo: TodoType) => Promise<void>;
-  cancelEdit: () => void;
-  editMode: boolean;
-  setToDoList:React.Dispatch<React.SetStateAction<TodoType[]>>
-
-
-
-}) => {
+  }) => {
   const { id, name, isCompleted, iTime } = todo;
   // edit
   const [editedName, setEditedName] = useState(name);
 
   const [loading, setLoading] = useState(false);
-
+  const dispatch: AppDispatch = useDispatch();
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -95,7 +81,7 @@ export const Todo = ({
   };
 
   const handleSaveClick = async () => {
-    setLoading(true)
+    setLoading(true);
     await saveEditedToDo({
       id: id,
       name: editedName,
@@ -103,7 +89,7 @@ export const Todo = ({
       iTime,
     });
     cancelEdit();
-    setLoading(false)
+    setLoading(false);
   };
 
   // enter on keyboard
@@ -115,20 +101,82 @@ export const Todo = ({
 
   const itemTime = dayjs(iTime).format("MMM DD, YYYY");
 
-
   const deleteToDo = async (todoId: string) => {
-    setLoading(true)
+    setLoading(true);
     try {
       await axios.delete("https://dummyjson.com/todos/1");
-      setToDoList((prevState) =>
-        prevState.filter((todo) => todo.id !== todoId)
-      );
+      dispatch(deleteTodos(todoId));
     } catch (error) {
       console.log("Error deleting to-do:", error);
     } finally {
-    setLoading(false)
+      setLoading(false);
     }
   };
+
+  // move from todoPage
+
+  const todos = useSelector((state: RootState) => state.todos.todos);
+  console.log(todos)
+
+  // lưu trữ ToDo hiện tại đang được chỉnh sửa
+  const currentEditTodo = useSelector((state: RootState) => state.todos.currentEditTodo)
+  console.log(currentEditTodo);
+
+
+
+
+  const updateIsCompleted = async (todoId: string) => {
+    console.log("todoId--====>", todoId)
+    const updatedTodo = todos.find((todo) => todo.id === todoId);
+    if (updatedTodo) {
+      try {
+        await axios.put(`https://dummyjson.com/todos/1`, {
+          todo: updatedTodo.name,
+          completed: !updatedTodo.isCompleted,
+          userId: 1,
+        });
+        dispatch(
+          updateTodos({
+            ...updatedTodo,
+            isCompleted: !updatedTodo.isCompleted,
+          })
+        );
+      } catch (error) {
+        console.error("Error updating todo:", error);
+      }
+    }
+  };
+
+  // cập nhật trạng thái chỉnh sửa
+  const editToDo = (todo: TodoType) => {
+    dispatch(setCurrentEditTodo(todo));
+  };
+
+  const saveEditedToDo = async (editedTodo: TodoType) => {
+    try {
+      await axios.put(`https://dummyjson.com/todos/1`, {
+        // id: editedTodo.id,
+        todo: editedTodo.name,
+        completed: editedTodo.isCompleted,
+        userId: 1,
+      });
+
+      dispatch(updateTodos(editedTodo));
+    } catch (error) {
+      console.error("Error saving edited to-do:", error);
+    }
+    dispatch(setCurrentEditTodo(null));
+  };
+
+  // cancel
+  const cancelEdit = () => {
+    dispatch(setCurrentEditTodo(null));
+  };
+  // localstores
+
+  useEffect(() => {
+    localStorage.setItem("toDoList", JSON.stringify(todos));
+  }, [todos]);
 
   return (
     <>
@@ -166,14 +214,11 @@ export const Todo = ({
 
             {/* delete */}
             <button
-              className={classNames(
-                "text-white px-2 py-1 rounded-lg max-h-8",
-                {
-                  hidden: isCompleted,
-                  "bg-gray-600": loading,
-                  "bg-red-600": !loading
-                }
-              )}
+              className={classNames("text-white px-2 py-1 rounded-lg max-h-8", {
+                hidden: isCompleted,
+                "bg-gray-600": loading,
+                "bg-red-600": !loading,
+              })}
               type="button"
               onClick={() => deleteToDo(id)}
               disabled={loading}
@@ -185,7 +230,8 @@ export const Todo = ({
               <div className="flex gap-1">
                 {/* save */}
                 <button
-                  className={classNames(" text-white px-2 py-1 rounded-lg max-h-8",
+                  className={classNames(
+                    " text-white px-2 py-1 rounded-lg max-h-8",
                     { "bg-gray-600": loading, "bg-green-600": !loading }
                   )}
                   type="button"
@@ -201,7 +247,7 @@ export const Todo = ({
                     {
                       hidden: isCompleted,
                       "bg-gray-600": loading,
-                      "bg-blue-600": !loading
+                      "bg-blue-600": !loading,
                     }
                   )}
                   type="button"
@@ -219,7 +265,7 @@ export const Todo = ({
                   {
                     hidden: isCompleted,
                     "bg-gray-600": loading,
-                    "bg-blue-600": !loading
+                    "bg-blue-600": !loading,
                   }
                 )}
                 type="button"

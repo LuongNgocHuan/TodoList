@@ -10,11 +10,13 @@ export type TodoType = {
 interface TodoState {
     todos: TodoType[];
     status: 'idle' | 'loading' | 'false';
+    currentEditTodo: TodoType | null
 }
 
 const initialState: TodoState = {
     todos: [],
-    status: 'idle'
+    status: 'idle',
+    currentEditTodo: null
 
 }
 
@@ -32,6 +34,13 @@ const todoSlice = createSlice({
         updateTodos(state, action: PayloadAction<TodoType>) {
             state.todos = state.todos.map(todo => todo.id === action.payload.id ? action.payload : todo)
         },
+        deleteTodos(state, action: PayloadAction<string>) {
+            state.todos = state.todos.filter(todo => todo.id !== action.payload)
+        },
+        setCurrentEditTodo(state, action: PayloadAction<TodoType | null>) {
+            state.currentEditTodo = action.payload
+
+        },
         setLoading(state) {
             state.status = "loading";
         },
@@ -41,6 +50,6 @@ const todoSlice = createSlice({
     }
 });
 
-export const { setTodos, addTodo, updateTodos, setLoading, setIdle } = todoSlice.actions;
+export const { setTodos, addTodo, updateTodos, deleteTodos, setCurrentEditTodo, setLoading, setIdle } = todoSlice.actions;
 export default todoSlice.reducer;
 export type { TodoState };

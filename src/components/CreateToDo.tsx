@@ -2,24 +2,28 @@ import { KeyboardEvent, useState } from "react";
 import List from "../assets/img/list.png"
 import { AddTD} from "./SVG/SVG";
 import { v4 as uuidv4 } from "uuid";
-import { TodoType } from "../pages/TodoPage";
+import { TodoType } from "../redux/Slice";
 import axios from "axios";
 import classNames from "classnames";
 import { AppDispatch, RootState } from "../redux/Store";
 import { useDispatch, useSelector } from "react-redux";
-import { addTodo, setIdle, setLoading } from "../redux/Slice";
+import {  addTodo, setIdle, setLoading } from "../redux/Slice";
 // import { TodoType } from "../redux/Slice";
 
-type Props = {
-  onCreateSuccess:(newItem:TodoType) => void;
-};
+// type Props = {
+//   onCreateSuccess:(newItem:TodoType) => void;
+// };
 
-const CreateToDo = ({ onCreateSuccess}: Props) => {
+const CreateToDo = () => {
   const dispatch: AppDispatch = useDispatch();
   const loading = useSelector((state: RootState) => state.todos.status === "loading");
   // const [loading, setLoading] = useState(false);
   const [newToDoString, setNewToDoString] = useState("");
 
+  const onCreateSuccess= (newItem:TodoType) => {
+    console.log(newItem)
+    dispatch(addTodo(newItem))
+  }
   
   const onAddBtn = async () => {
     dispatch(setLoading());
@@ -38,7 +42,7 @@ const CreateToDo = ({ onCreateSuccess}: Props) => {
         userId: 1,
       });
 
-      dispatch(addTodo(newToDoItem));
+      // dispatch(addTodo(newToDoItem));
       onCreateSuccess(newToDoItem);
       setNewToDoString("");
     } catch (error) {
@@ -58,6 +62,7 @@ const CreateToDo = ({ onCreateSuccess}: Props) => {
     setNewToDoString(e.target.value);
   };
 
+ 
 
   return (
     <>

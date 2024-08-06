@@ -1,44 +1,21 @@
 // cSpell:ignore todos, uuidv
-import { useEffect, useState } from "react";
 import CreateToDo from "../components/CreateToDo";
 import { Link, Outlet } from "react-router-dom";
 import ToDoList from "../components/ToDoList";
-import axios, { AxiosResponse } from "axios";
-// import { TodoType } from "../redux/Slice";
 
 // img
 import Code from "../assets/img/code.png";
 import Hidden from "../assets/img/hidden.png";
-
+import { useEffect } from "react";
+import axios, { AxiosResponse } from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../redux/Store";
-import { addTodo, setTodos, updateTodos } from "../redux/Slice";
-
-export type TodoType = {
-  id: string;
-  name: string;
-  isCompleted: boolean;
-  iTime: string;
-
-};
+import { setTodos } from "../redux/Slice";
+import { RootState } from "../redux/Store";
 
 
 function TodoPage() {
-  const [toDoList, setToDoList] = useState<TodoType[]>([]);
-  const dispatch: AppDispatch = useDispatch()
-  const todos = useSelector((state: RootState)=>state.todos.todos);
-
-  console.log(toDoList);
-
-  // lưu trữ ToDo hiện tại đang được chỉnh sửa
-  const [currentEditTodo, setCurrentEditTodo] = useState<TodoType | null>(null);
-  
-  const onCreateSuccess= (newItem:TodoType) => {
-    console.log(newItem)
-    dispatch(addTodo(newItem))
-  }
-
-  console.log(todos)
+  const dispatch = useDispatch();
+  const todos = useSelector((state: RootState) => state.todos.todos);
 
 
   // API get list
@@ -47,8 +24,8 @@ function TodoPage() {
     todo: string;
     completed: boolean;
   };
-
   type ApiResponse = { todos: TodoAPI[] };
+
   useEffect(() => {
     const fetchToDoList = async () => {
       try {
@@ -61,7 +38,6 @@ function TodoPage() {
           isCompleted: todo.completed,
           iTime: new Date().toISOString(),
         }));
-        console.log("fetchToDoList");
         dispatch(setTodos(todosReturn));
       } catch (error) {
         console.error("Error fetching to-dos:", error);
@@ -70,76 +46,16 @@ function TodoPage() {
     if (todos.length === 0) {
       fetchToDoList();
     }
-  }, [todos, dispatch]);
-
-  const updateIsCompleted = async (todoId: string) => {
-    const updatedTodo = todos.find((todo) => todo.id === todoId);
-    if (updatedTodo) {
-      try {
-        await axios.put(`https://dummyjson.com/todos/1`, {
-          todo: updatedTodo.name,
-          completed: !updatedTodo.isCompleted,
-          userId: 1,
-        });
-        dispatch(updateTodos({
-          ...updatedTodo,
-          isCompleted: !updatedTodo.isCompleted
-        }));
-      } catch (error) {
-        console.error("Error updating todo:", error);
-      }
-    }
-  };
-
-  // cập nhật trạng thái chỉnh sửa
-  const editToDo = (todo: TodoType) => {
-    setCurrentEditTodo(todo);
-  };
-
-  const saveEditedToDo = async (editedTodo: TodoType) => {
-    try {
-      await axios.put(`https://dummyjson.com/todos/1`, {
-        // id: editedTodo.id,
-        todo: editedTodo.name,
-        completed: editedTodo.isCompleted,
-        userId: 1,
-      });
-
-      dispatch(updateTodos(editedTodo));
-    } catch (error) {
-      console.error("Error saving edited to-do:", error);
-    }
-    setCurrentEditTodo(null);
-  };
-
-  // cancel
-  const cancelEdit = () => {
-    setCurrentEditTodo(null);
-  };
-
-  // localstores
-
-  useEffect(() => {
-    localStorage.setItem("toDoList", JSON.stringify(todos));
-  }, [todos]);
+    // fetchToDoList();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <>
       <div className="">
-        <CreateToDo
-          onCreateSuccess={onCreateSuccess}
-        />
+        <CreateToDo />
 
-        <ToDoList
-          toDoList={todos}
-          updateIsCompleted={updateIsCompleted}
-          // edit
-          editToDo={editToDo}
-          saveEditedToDo={saveEditedToDo}
-          cancelEdit={cancelEdit}
-          currentEditTodo={currentEditTodo}
-          setToDoList={setToDoList}
-        />
+        <ToDoList />
       </div>
       <div className="flex justify-center mt-10 gap-8 ">
         <Link
