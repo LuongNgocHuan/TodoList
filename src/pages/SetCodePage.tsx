@@ -1,8 +1,9 @@
-
 import { Form, Field, ErrorMessage, Formik, FormikHelpers } from "formik";
+import { useLocation, useNavigate } from "react-router-dom";
 import * as Yup from "yup";
-import { useLocation, useNavigate } from 'react-router-dom';
 
+import Avt from "../assets/img/avt.png";
+import Code from "../assets/img/code.png";
 
 type FormValues = {
   currentCode: string;
@@ -13,12 +14,10 @@ type FormValues = {
 
 const SetCodePage = () => {
   const { state } = useLocation();
-  console.log(state);
-
 
   // khoi tao initialValues formik
-  //  returnpath 
-  const storedCode = localStorage.getItem("code") || ""
+  //  returnpath
+  const storedCode = localStorage.getItem("code") || "";
 
   const navigate = useNavigate();
 
@@ -31,22 +30,31 @@ const SetCodePage = () => {
 
   // Khai bao validation schema Yup
   const validationSchema = Yup.object().shape({
-    currentCode: storedCode ? Yup.string().when("storedCode", {
-      is: (storedCode: string) => !!storedCode,
-      then: () => Yup.string()
-        .matches(/^\d{6}$/, "Current code must be exactly 6 digits")
-        .required("Current code is required"),
-    }) : Yup.string(),
+    currentCode: storedCode
+      ? Yup.string().when("storedCode", {
+          is: (storedCode: string) => !!storedCode,
+          then: () =>
+            Yup.string()
+              .matches(/^\d{6}$/, "Current code must be exactly 6 digits")
+              .required("Current code is required"),
+        })
+      : Yup.string(),
     newCode: Yup.string()
       .matches(/^\d{6}$/, "New code must be exactly 6 digits")
       .required("New code is required"),
     confirmNewCode: Yup.string()
-      .oneOf([Yup.ref("newCode"), undefined], "Confirm code must match new code")
+      .oneOf(
+        [Yup.ref("newCode"), undefined],
+        "Confirm code must match new code"
+      )
       .required("Confirm new code is required"),
   });
 
   // Xử lý submit form
-  const handleSubmit = (values: FormValues, { setSubmitting }: FormikHelpers<FormValues>) => {
+  const handleSubmit = (
+    values: FormValues,
+    { setSubmitting }: FormikHelpers<FormValues>
+  ) => {
     localStorage.setItem("code", values.newCode);
     alert("set-code successfully!");
     setSubmitting(false);
@@ -54,11 +62,9 @@ const SetCodePage = () => {
     if (state?.returnUrl) {
       navigate(state.returnUrl, { replace: true });
     } else {
-      navigate('/pin-code', { replace: true });
+      navigate("/pin-code", { replace: true });
     }
-
   };
-
 
   return (
     <>
@@ -72,32 +78,28 @@ const SetCodePage = () => {
           {({ isSubmitting, errors, touched }) => (
             <Form className=" bg-white  w-[600px] h-auto pb-8 rounded-2xl shadow-2xl border-2 px-10 ">
               <div className=" flex flex-col justify-center items-center my-10 ">
-                <img
-                  className="size-16"
-                  src="../assets/img/avt.png"
-                  alt="userImg"
-                />
+                <img className="size-16" src={Avt} alt="userImg" />
                 <h1 className="uppercase font-bold text-2xl"> Welcome</h1>
               </div>
 
               <div className="relative flex flex-col mb-10 gap-8">
                 {initialValues.storedCode && (
                   <div className="">
-                    <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.currentCode && touched.currentCode ? 'border-red-500' : 'border-gray-300'}`}>
-                      <img
-                        className="size-4 "
-                        src="../assets/img/code.png"
-                        alt="password"
-                      />
+                    <div
+                      className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${
+                        errors.currentCode && touched.currentCode
+                          ? "border-red-500"
+                          : "border-gray-300"
+                      }`}
+                    >
+                      <img className="size-4 " src={Code} alt="password" />
                       <Field
-
                         className="input-trans focus:outline-none w-full h-12 rounded-lg"
                         type="text"
                         name="currentCode"
                         placeholder=""
                       />
                       <label className="label-inline">Enter current code</label>
-
                     </div>
                     <ErrorMessage
                       name="currentCode"
@@ -107,14 +109,15 @@ const SetCodePage = () => {
                   </div>
                 )}
 
-
                 <div className="">
-                  <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.newCode && touched.newCode ? 'border-red-500' : 'border-gray-300'}`}>
-                    <img
-                      className="size-4 "
-                      src="../assets/img/code.png"
-                      alt="name"
-                    />
+                  <div
+                    className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${
+                      errors.newCode && touched.newCode
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <img className="size-4 " src={Code} alt="name" />
 
                     <Field
                       className="input-trans focus:outline-none w-full h-12 rounded-lg"
@@ -123,7 +126,6 @@ const SetCodePage = () => {
                       placeholder=""
                     />
                     <label className="label-inline">New code</label>
-
                   </div>
                   <ErrorMessage
                     name="newCode"
@@ -132,13 +134,15 @@ const SetCodePage = () => {
                   />
                 </div>
 
-                <div className="" >
-                  <div className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${errors.confirmNewCode && touched.confirmNewCode ? 'border-red-500' : 'border-gray-300'}`}>
-                    <img
-                      className="size-4 "
-                      src="../assets/img/code.png"
-                      alt="email"
-                    />
+                <div className="">
+                  <div
+                    className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${
+                      errors.confirmNewCode && touched.confirmNewCode
+                        ? "border-red-500"
+                        : "border-gray-300"
+                    }`}
+                  >
+                    <img className="size-4 " src={Code} alt="email" />
                     <Field
                       className="input-trans focus:outline-none  w-full h-12 rounded-lg"
                       type="text"
@@ -152,7 +156,6 @@ const SetCodePage = () => {
                     component="div"
                     className="absolute text-red-500 text-sm mt-1 ml-2"
                   />
-
                 </div>
               </div>
 

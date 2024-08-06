@@ -1,58 +1,16 @@
 // cSpell:ignore todos, uuidv
-import CreateToDo from "../components/CreateToDo";
 import { Link, Outlet } from "react-router-dom";
+
+import CreateToDo from "../components/CreateToDo";
 import ToDoList from "../components/ToDoList";
 
-// img
 import Code from "../assets/img/code.png";
 import Hidden from "../assets/img/hidden.png";
-import { useEffect } from "react";
-import axios, { AxiosResponse } from "axios";
-import { useDispatch, useSelector } from "react-redux";
-import { setTodos } from "../redux/Slice";
-import { RootState } from "../redux/Store";
-
 
 function TodoPage() {
-  const dispatch = useDispatch();
-  const todos = useSelector((state: RootState) => state.todos.todos);
-
-
-  // API get list
-  type TodoAPI = {
-    id: number;
-    todo: string;
-    completed: boolean;
-  };
-  type ApiResponse = { todos: TodoAPI[] };
-
-  useEffect(() => {
-    const fetchToDoList = async () => {
-      try {
-        const response: AxiosResponse<ApiResponse> = await axios.get(
-          "https://dummyjson.com/todos/user/1"
-        );
-        const todosReturn = response.data.todos.map((todo: TodoAPI) => ({
-          id: todo.id.toString(),
-          name: todo.todo,
-          isCompleted: todo.completed,
-          iTime: new Date().toISOString(),
-        }));
-        dispatch(setTodos(todosReturn));
-      } catch (error) {
-        console.error("Error fetching to-dos:", error);
-      }
-    };
-    if (todos.length === 0) {
-      fetchToDoList();
-    }
-    // fetchToDoList();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   return (
     <>
-      <div className="">
+      <div>
         <CreateToDo />
 
         <ToDoList />

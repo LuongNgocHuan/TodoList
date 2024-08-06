@@ -1,11 +1,19 @@
+import { useDispatch, useSelector } from "react-redux";
+
 import axios from "axios";
+import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
-import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { deleteTodos, setCurrentEditTodo, TodoType, updateTodos } from "../redux/Slice";
+
+import {
+  deleteTodos,
+  setCurrentEditTodo,
+  TodoType,
+  updateTodos,
+} from "../redux/Slice";
 import { AppDispatch, RootState } from "../redux/Store";
+
 import {
   CancleTD,
   CompletedFalse,
@@ -16,6 +24,7 @@ import {
 } from "./SVG/SVG";
 
 dayjs.extend(relativeTime);
+
 
 
 const Icon = ({
@@ -41,23 +50,33 @@ const Icon = ({
     </div>
   );
 };
+
 export const Todo = ({
   todo,
   editMode,
-}:
-  {
-    todo: TodoType;
-    editMode: boolean;
-
-  }) => {
+}: {
+  todo: TodoType;
+  editMode: boolean;
+}) => {
+  
   const { id, name, isCompleted, iTime } = todo;
-  // edit
-  const [editedName, setEditedName] = useState(name);
-
-  const [loading, setLoading] = useState(false);
+  const itemTime = dayjs(iTime).format("MMM DD, YYYY");
+  
   const dispatch: AppDispatch = useDispatch();
-
+  const [editedName, setEditedName] = useState(name);
+  const [loading, setLoading] = useState(false);
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+
+  const todos = useSelector((state: RootState) => state.todos.todos);
+  console.log(todos);
+
+  const currentEditTodo = useSelector(
+    (state: RootState) => state.todos.currentEditTodo
+  );
+  console.log(currentEditTodo);
+
+
   useEffect(() => {
     if (editMode && inputRef.current) {
       inputRef.current.focus();
@@ -99,7 +118,6 @@ export const Todo = ({
     }
   };
 
-  const itemTime = dayjs(iTime).format("MMM DD, YYYY");
 
   const deleteToDo = async (todoId: string) => {
     setLoading(true);
@@ -113,20 +131,9 @@ export const Todo = ({
     }
   };
 
-  // move from todoPage
-
-  const todos = useSelector((state: RootState) => state.todos.todos);
-  console.log(todos)
-
-  // lưu trữ ToDo hiện tại đang được chỉnh sửa
-  const currentEditTodo = useSelector((state: RootState) => state.todos.currentEditTodo)
-  console.log(currentEditTodo);
-
-
-
 
   const updateIsCompleted = async (todoId: string) => {
-    console.log("todoId--====>", todoId)
+    console.log("todoId--====>", todoId);
     const updatedTodo = todos.find((todo) => todo.id === todoId);
     if (updatedTodo) {
       try {
@@ -147,10 +154,6 @@ export const Todo = ({
     }
   };
 
-  // cập nhật trạng thái chỉnh sửa
-  const editToDo = (todo: TodoType) => {
-    dispatch(setCurrentEditTodo(todo));
-  };
 
   const saveEditedToDo = async (editedTodo: TodoType) => {
     try {
@@ -172,11 +175,18 @@ export const Todo = ({
   const cancelEdit = () => {
     dispatch(setCurrentEditTodo(null));
   };
+
+  // cập nhật trạng thái chỉnh sửa
+  const editToDo = (todo: TodoType) => {
+    dispatch(setCurrentEditTodo(todo));
+  };
+
+
   // localstores
 
-  useEffect(() => {
-    localStorage.setItem("toDoList", JSON.stringify(todos));
-  }, [todos]);
+  // useEffect(() => {
+  //   localStorage.setItem("toDoList", JSON.stringify(todos));
+  // }, [todos]);
 
   return (
     <>
