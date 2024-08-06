@@ -4,10 +4,15 @@ import CreateToDo from "../components/CreateToDo";
 import { Link, Outlet } from "react-router-dom";
 import ToDoList from "../components/ToDoList";
 import axios, { AxiosResponse } from "axios";
+// import { TodoType } from "../redux/Slice";
 
 // img
 import Code from "../assets/img/code.png";
 import Hidden from "../assets/img/hidden.png";
+
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../redux/Store";
+import { addTodo, setTodos, updateTodos } from "../redux/Slice";
 
 export type TodoType = {
   id: string;
@@ -17,8 +22,11 @@ export type TodoType = {
 
 };
 
+
 function TodoPage() {
   const [toDoList, setToDoList] = useState<TodoType[]>([]);
+  const dispatch: AppDispatch = useDispatch()
+  const todos = useSelector((state: RootState)=>state.todos.todos);
 
   console.log(toDoList);
 
@@ -26,8 +34,11 @@ function TodoPage() {
   const [currentEditTodo, setCurrentEditTodo] = useState<TodoType | null>(null);
   
   const onCreateSuccess= (newItem:TodoType) => {
-    setToDoList([newItem, ...toDoList]);
+    console.log(newItem)
+    dispatch(addTodo(newItem))
   }
+
+  console.log(todos)
 
 
   // API get list
@@ -38,7 +49,6 @@ function TodoPage() {
   };
 
   type ApiResponse = { todos: TodoAPI[] };
-
   useEffect(() => {
     const fetchToDoList = async () => {
       try {
@@ -52,16 +62,18 @@ function TodoPage() {
           iTime: new Date().toISOString(),
         }));
         console.log("fetchToDoList");
-        setToDoList(todosReturn);
+        dispatch(setTodos(todosReturn));
       } catch (error) {
         console.error("Error fetching to-dos:", error);
       }
     };
-    fetchToDoList();
-  }, []);
+    if (todos.length === 0) {
+      fetchToDoList();
+    }
+  }, [todos, dispatch]);
 
   const updateIsCompleted = async (todoId: string) => {
-    const updatedTodo = toDoList.find((todo) => todo.id === todoId);
+    const updatedTodo = todos.find((todo) => todo.id === todoId);
     if (updatedTodo) {
       try {
         await axios.put(`https://dummyjson.com/todos/1`, {
@@ -69,14 +81,10 @@ function TodoPage() {
           completed: !updatedTodo.isCompleted,
           userId: 1,
         });
-        setToDoList((prevState) =>
-          prevState.map((todo) => {
-            if (todo.id === todoId) {
-              return { ...todo, isCompleted: !todo.isCompleted };
-            }
-            return todo;
-          })
-        );
+        dispatch(updateTodos({
+          ...updatedTodo,
+          isCompleted: !updatedTodo.isCompleted
+        }));
       } catch (error) {
         console.error("Error updating todo:", error);
       }
@@ -97,18 +105,7 @@ function TodoPage() {
         userId: 1,
       });
 
-      setToDoList((prevState) =>
-        prevState.map((todo) =>
-          todo.id === editedTodo.id
-            ? {
-              ...todo,
-              name: editedTodo.name,
-              isCompleted: editedTodo.isCompleted,
-              iTime: editedTodo.iTime,
-            }
-            : todo
-        )
-      );
+      dispatch(updateTodos(editedTodo));
     } catch (error) {
       console.error("Error saving edited to-do:", error);
     }
@@ -123,8 +120,8 @@ function TodoPage() {
   // localstores
 
   useEffect(() => {
-    localStorage.setItem("toDoList", JSON.stringify(toDoList));
-  }, [toDoList]);
+    localStorage.setItem("toDoList", JSON.stringify(todos));
+  }, [todos]);
 
   return (
     <>
@@ -134,7 +131,7 @@ function TodoPage() {
         />
 
         <ToDoList
-          toDoList={toDoList}
+          toDoList={todos}
           updateIsCompleted={updateIsCompleted}
           // edit
           editToDo={editToDo}

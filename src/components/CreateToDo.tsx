@@ -5,18 +5,24 @@ import { v4 as uuidv4 } from "uuid";
 import { TodoType } from "../pages/TodoPage";
 import axios from "axios";
 import classNames from "classnames";
+import { AppDispatch, RootState } from "../redux/Store";
+import { useDispatch, useSelector } from "react-redux";
+import { addTodo, setIdle, setLoading } from "../redux/Slice";
+// import { TodoType } from "../redux/Slice";
 
 type Props = {
   onCreateSuccess:(newItem:TodoType) => void;
 };
 
 const CreateToDo = ({ onCreateSuccess}: Props) => {
-  const [loading, setLoading] = useState(false);
+  const dispatch: AppDispatch = useDispatch();
+  const loading = useSelector((state: RootState) => state.todos.status === "loading");
+  // const [loading, setLoading] = useState(false);
   const [newToDoString, setNewToDoString] = useState("");
 
   
   const onAddBtn = async () => {
-    setLoading(true);
+    dispatch(setLoading());
 
     const newToDoItem: TodoType = {
       id: uuidv4(),
@@ -32,12 +38,13 @@ const CreateToDo = ({ onCreateSuccess}: Props) => {
         userId: 1,
       });
 
+      dispatch(addTodo(newToDoItem));
       onCreateSuccess(newToDoItem);
       setNewToDoString("");
     } catch (error) {
       console.error("Error adding new to-do:", error);
     } finally {
-      setLoading(false);
+      dispatch(setIdle());
     }
   };
   // enter on keyboard
