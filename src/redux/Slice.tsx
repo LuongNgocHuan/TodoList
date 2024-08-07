@@ -7,16 +7,25 @@ export type TodoType = {
   iTime: string;
 };
 
-interface TodoState {
+type TodoState = {
   todos: TodoType[];
-  status: "do-nothing" | "loading" | "false";
+  statusCreate: boolean;
+  statusList: boolean;
   currentEditTodo: TodoType | null;
-}
+  editedName: string;
+  newToDoString: string;
+  // PinCode
+  hidden: boolean;
+};
 
 const initialState: TodoState = {
   todos: [],
-  status: "do-nothing",
+  statusCreate: false,
+  statusList: false,
   currentEditTodo: null,
+  editedName: "",
+  newToDoString: "",
+  hidden: true,
 };
 
 const todoSlice = createSlice({
@@ -37,14 +46,30 @@ const todoSlice = createSlice({
     deleteTodos(state, action: PayloadAction<string>) {
       state.todos = state.todos.filter((todo) => todo.id !== action.payload);
     },
-    setCurrentEditTodo(state, action: PayloadAction<TodoType | null>) {
+    isCurrentEditTodo(state, action: PayloadAction<TodoType | null>) {
       state.currentEditTodo = action.payload;
     },
-    setLoading(state) {
-      state.status = "loading";
+    isLoadingCreate(state) {
+      state.statusCreate = true;
     },
-    setNothing(state) {
-      state.status = "do-nothing";
+    isNothingCreate(state) {
+      state.statusCreate = false;
+    },
+    isLoadingList(state) {
+      state.statusList = true;
+    },
+    isNothingList(state) {
+      state.statusList = false;
+    },
+    isEditedName(state, action: PayloadAction<string>) {
+      state.editedName = action.payload;
+    },
+    isNewToDoString(state, action: PayloadAction<string>) {
+      state.newToDoString = action.payload;
+    },
+    // PinCode
+    isHidden(state, action: PayloadAction<boolean>) {
+      state.hidden = action.payload;
     },
   },
 });
@@ -54,9 +79,14 @@ export const {
   addTodo,
   updateTodos,
   deleteTodos,
-  setCurrentEditTodo,
-  setLoading,
-  setNothing,
+  isCurrentEditTodo,
+  isLoadingCreate,
+  isNothingCreate,
+  isLoadingList,
+  isNothingList,
+  isEditedName,
+  isNewToDoString,
+  isHidden,
 } = todoSlice.actions;
 export default todoSlice.reducer;
 export type { TodoState };

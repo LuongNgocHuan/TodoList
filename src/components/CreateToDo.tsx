@@ -1,11 +1,16 @@
-import { KeyboardEvent, useState } from "react";
+import { KeyboardEvent } from "react";
 import { v4 as uuidv4 } from "uuid";
 import classNames from "classnames";
 import axios from "axios";
 
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../redux/Store";
-import { addTodo, setLoading, setNothing } from "../redux/Slice";
+import {
+  addTodo,
+  isLoadingCreate,
+  isNothingCreate,
+  isNewToDoString,
+} from "../redux/Slice";
 import { TodoType } from "../redux/Slice";
 
 import List from "../assets/img/list.png";
@@ -13,20 +18,21 @@ import { AddTD } from "./SVG/SVG";
 
 const CreateToDo = () => {
   const dispatch: AppDispatch = useDispatch();
+
   const loading = useSelector(
-    (state: RootState) => state.todos.status === "loading"
+    (state: RootState) => state.todos.statusCreate === true
+  );
+  const newToDoString = useSelector(
+    (state: RootState) => state.todos.newToDoString
   );
 
-  const [newToDoString, setNewToDoString] = useState("");
-
-  
   const onCreateSuccess = (newItem: TodoType) => {
     console.log(newItem);
     dispatch(addTodo(newItem));
   };
 
   const onAddBtn = async () => {
-    dispatch(setLoading());
+    dispatch(isLoadingCreate());
 
     const newToDoItem: TodoType = {
       id: uuidv4(),
@@ -44,11 +50,11 @@ const CreateToDo = () => {
 
       // dispatch(addTodo(newToDoItem));
       onCreateSuccess(newToDoItem);
-      setNewToDoString("");
+      dispatch(isNewToDoString(""));
     } catch (error) {
       console.error("Error adding new to-do:", error);
     } finally {
-      dispatch(setNothing());
+      dispatch(isNothingCreate());
     }
   };
   // enter on keyboard
@@ -59,7 +65,7 @@ const CreateToDo = () => {
   };
 
   const onNewToDoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setNewToDoString(e.target.value);
+    dispatch(isNewToDoString(e.target.value));
   };
 
   return (

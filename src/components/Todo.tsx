@@ -1,16 +1,19 @@
 import { useDispatch, useSelector } from "react-redux";
 
 import axios from "axios";
-import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
+import React, { KeyboardEvent, useEffect, useRef } from "react";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 import {
   deleteTodos,
-  setCurrentEditTodo,
+  isCurrentEditTodo,
+  isLoadingList,
+  isNothingList,
   TodoType,
   updateTodos,
+  isEditedName,
 } from "../redux/Slice";
 import { AppDispatch, RootState } from "../redux/Store";
 
@@ -24,8 +27,6 @@ import {
 } from "./SVG/SVG";
 
 dayjs.extend(relativeTime);
-
-
 
 const Icon = ({
   todoId,
@@ -44,9 +45,9 @@ const Icon = ({
     >
       {isCompleted
         ? // true
-        CompletedTrue
+          CompletedTrue
         : // false
-        CompletedFalse}
+          CompletedFalse}
     </div>
   );
 };
@@ -58,24 +59,23 @@ export const Todo = ({
   todo: TodoType;
   editMode: boolean;
 }) => {
-  
   const { id, name, isCompleted, iTime } = todo;
   const itemTime = dayjs(iTime).format("MMM DD, YYYY");
-  
+
   const dispatch: AppDispatch = useDispatch();
-  const [editedName, setEditedName] = useState(name);
-  const [loading, setLoading] = useState(false);
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-
+  const editedName = useSelector((state: RootState) => state.todos.editedName);
+  const loading = useSelector(
+    (state: RootState) => state.todos.statusList === true
+  );
   const todos = useSelector((state: RootState) => state.todos.todos);
   console.log(todos);
-
   const currentEditTodo = useSelector(
     (state: RootState) => state.todos.currentEditTodo
   );
   console.log(currentEditTodo);
-
 
   useEffect(() => {
     if (editMode && inputRef.current) {
@@ -91,16 +91,16 @@ export const Todo = ({
   // cancel (theo doi thay doi cua name, neu editmode = false thi dat lai gia tri cua SetEditmode = name)
   useEffect(() => {
     if (!editMode) {
-      setEditedName(name);
+      dispatch(isEditedName(name));
     }
-  }, [editMode, name]);
+  }, [editMode, name, dispatch]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setEditedName(e.target.value);
+    dispatch(isEditedName(e.target.value));
   };
 
   const handleSaveClick = async () => {
-    setLoading(true);
+    dispatch(isLoadingList());
     await saveEditedToDo({
       id: id,
       name: editedName,
@@ -108,7 +108,7 @@ export const Todo = ({
       iTime,
     });
     cancelEdit();
-    setLoading(false);
+    dispatch(isNothingList());
   };
 
   // enter on keyboard
@@ -118,19 +118,17 @@ export const Todo = ({
     }
   };
 
-
   const deleteToDo = async (todoId: string) => {
-    setLoading(true);
+    dispatch(isLoadingList());
     try {
       await axios.delete("https://dummyjson.com/todos/1");
       dispatch(deleteTodos(todoId));
     } catch (error) {
       console.log("Error deleting to-do:", error);
     } finally {
-      setLoading(false);
+      dispatch(isNothingList());
     }
   };
-
 
   const updateIsCompleted = async (todoId: string) => {
     console.log("todoId--====>", todoId);
@@ -154,7 +152,6 @@ export const Todo = ({
     }
   };
 
-
   const saveEditedToDo = async (editedTodo: TodoType) => {
     try {
       await axios.put(`https://dummyjson.com/todos/1`, {
@@ -168,19 +165,18 @@ export const Todo = ({
     } catch (error) {
       console.error("Error saving edited to-do:", error);
     }
-    dispatch(setCurrentEditTodo(null));
+    dispatch(isCurrentEditTodo(null));
   };
 
   // cancel
   const cancelEdit = () => {
-    dispatch(setCurrentEditTodo(null));
+    dispatch(isCurrentEditTodo(null));
   };
 
   // cập nhật trạng thái chỉnh sửa
   const editToDo = (todo: TodoType) => {
-    dispatch(setCurrentEditTodo(todo));
+    dispatch(isCurrentEditTodo(todo));
   };
-
 
   // localstores
 

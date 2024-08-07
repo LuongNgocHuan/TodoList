@@ -1,179 +1,235 @@
-import { Form, Field, ErrorMessage, Formik, FormikHelpers } from "formik";
-import { useLocation, useNavigate } from "react-router-dom";
-import * as Yup from "yup";
+import { useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import {
+  Formik,
+  Form,
+  Field,
+  FieldProps,
+  FormikProps,
+  FormikHelpers,
+} from "formik";
 
-import Avt from "../assets/img/avt.png";
-import Code from "../assets/img/code.png";
+import { usePinCodeValidation } from "../hooks/usePincode";
+import { isValidNumber } from "../hooks/isValidNumber";
+
+import Password from "../assets/img/password.png";
+import Hidden from "../assets/img/hidden.png";
+import View from "../assets/img//view.png";
 
 type FormValues = {
-  currentCode: string;
-  newCode: string;
-  confirmNewCode: string;
-  storedCode: string;
+  pinCode: string[];
 };
 
-const SetCodePage = () => {
-  const { state } = useLocation(); 
+const PinCode = ({ onSuccess }: { onSuccess?: () => void }) => {
+  const [hidden, setHidden] = useState(true);
 
-  // khoi tao initialValues formik
-  //  returnpath
-  const storedCode = localStorage.getItem("code") || "";
+  // su dung hook usePincode
+  const pinCode = usePinCodeValidation();
 
   const navigate = useNavigate();
 
-  const initialValues: FormValues = {
-    currentCode: "",
-    newCode: "",
-    confirmNewCode: "",
-    storedCode: storedCode,
+  // ham hidden code
+  const toggleShowHide = () => {
+    setHidden(!hidden);
   };
 
-  // Khai bao validation schema Yup
-  const validationSchema = Yup.object().shape({
-    currentCode: storedCode
-      ? Yup.string().when("storedCode", {
-          is: (storedCode: string) => !!storedCode,
-          then: () =>
-            Yup.string()
-              .matches(/^\d{6}$/, "Current code must be exactly 6 digits")
-              .required("Current code is required"),
-        })
-      : Yup.string(),
-    newCode: Yup.string()
-      .matches(/^\d{6}$/, "New code must be exactly 6 digits")
-      .required("New code is required"),
-    confirmNewCode: Yup.string()
-      .oneOf(
-        [Yup.ref("newCode"), undefined],
-        "Confirm code must match new code"
-      )
-      .required("Confirm new code is required"),
-  });
+  // khoi tao form
+  const initialValues = {
+    pinCode: Array(6).fill(""),
+  };
 
-  // Xử lý submit form
   const handleSubmit = (
-    values: FormValues,
-    { setSubmitting }: FormikHelpers<FormValues>
+    values: { pinCode: string[] },
+    { setValues }: FormikHelpers<FormValues>
   ) => {
-    localStorage.setItem("code", values.newCode);
-    alert("set-code successfully!");
-    setSubmitting(false);
-    // chuyen huong ve trang todo khi da them code thanh cong
-    if (state?.returnUrl) {
-      navigate(state.returnUrl, { replace: true });
+    const enteredPinCode = values.pinCode.join("");
+
+    if (!enteredPinCode) {
+      alert("You need to enter the pin code");
+      return;
+    }
+
+    if (pinCode === enteredPinCode) {
+      alert("PIN code matched!");
+      // sau khi so sanh (true) back ve todo
+      if (onSuccess) {
+        onSuccess();
+      }
+      navigate("/", { replace: true });
     } else {
-      navigate("/pin-code", { replace: true });
+      alert("PIN code does not match!");
+      // sau khi so sanh (false) fill ""
+      setValues({ pinCode: Array(6).fill("") });
     }
   };
 
+  // nhap
+  const handleInput = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: FieldProps["field"],
+    form: FormikProps<FormValues>,
+    index: number
+  ) => {
+    // lay value nhap vao
+    const value = e.target.value.replace(/[^0-9]/g, "");
+
+    if (isValidNumber(value)) {
+      form.setFieldValue(field.name, value);
+      // value nhap vao khong phai o cuoi
+      if (value.length === 1 && index < 5) {
+        // tim o tiep theo
+        const nextInput = document.querySelector<HTMLInputElement>(
+          `input[name="pinCode.${index + 1}"]`
+        );
+        if (nextInput) nextInput.focus();
+      }
+    }
+  };
+
+  // paste
+  const handlePaste = (
+    e: React.ClipboardEvent<HTMLInputElement>,
+    form: FormikProps<FormValues>
+  ) => {
+    // bo hanh vi dan mac dinh cua web
+    e.preventDefault();
+    // get value tu clipboard / chi lay 6 ki tu dau
+    let pasteData = e.clipboardData.getData("text/plain").slice(0, 6);
+    pasteData = pasteData.replace(/[^0-9]/g, "");
+
+    // chia chuoi pasteData thanh mang rieng
+    const pasteNumbers = pasteData.split("");
+    // lay chi so o hien tai
+    const currentIndex = Number(e.currentTarget.name.split(".")[1]);
+    // khoi tao bien kiem duyet qua cac mang
+    let pasteNumbersIndex = 0;
+    // vong lap gan gia tri tu o input hien tai tro di
+    for (
+      let index = currentIndex;
+      index < 6 && pasteNumbersIndex < pasteNumbers.length;
+      index++
+    ) {
+      // tao ten truong input dua tren index hien tai
+      const name = `pinCode.${index}`;
+      // gan gia tri tung mang vao input tuong ung
+      form.setFieldValue(name, pasteNumbers[pasteNumbersIndex]);
+      pasteNumbersIndex++;
+    }
+
+    //tinh toan chi so cua o tiep theo ma focus duoc di chuyen den sau khi paste/ ko vuot qua 6
+    const nextIndex = Math.min(currentIndex + pasteNumbers.length, 5);
+    // tim phan tu trong dom theo name
+    const nextInput = document.querySelector<HTMLInputElement>(
+      `input[name="pinCode.${nextIndex}"]`
+    );
+    // forcus vao o tiep theo
+    if (nextInput) {
+      nextInput.focus();
+    }
+  };
+
+  // xoa / chan
+  const handleKeyDown = (
+    e: React.KeyboardEvent<HTMLInputElement>,
+    field: FieldProps["field"],
+    form: FormikProps<FormValues>,
+    index: number
+  ) => {
+    // chuyen con tro den o truoc do khi backspace
+    if (e.key === "Backspace" && !field.value && index > 0) {
+      const prevInput = document.querySelector<HTMLInputElement>(
+        `input[name="pinCode.${index - 1}"]`
+      );
+      if (prevInput) {
+        prevInput.focus();
+        form.setFieldValue(`pinCode.${index - 1}`, "");
+      }
+    }
+    // enter
+    if (e.key === "Enter") {
+      handleSubmit(form.values, form);
+    }
+  };
+
+  // ham su ly focus input
+  // tao ref de giu cac tham chieu den o input
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  useEffect(() => {
+    // check o nhap lieu dau tien
+    if (inputRefs.current[0]) {
+      inputRefs.current[0].focus();
+    }
+  }, []);
+
   return (
     <>
-      <div className="mt-10 flex flex-col items-center ">
-        <Formik
-          initialValues={initialValues}
-          validationSchema={validationSchema}
-          onSubmit={handleSubmit}
-          enableReinitialize
-        >
-          {({ isSubmitting, errors, touched }) => (
-            <Form className=" bg-white  w-[600px] h-auto pb-8 rounded-2xl shadow-2xl border-2 px-10 ">
-              <div className=" flex flex-col justify-center items-center my-10 ">
-                <img className="size-16" src={Avt} alt="userImg" />
-                <h1 className="uppercase font-bold text-2xl"> Welcome</h1>
-              </div>
-
-              <div className="relative flex flex-col mb-10 gap-8">
-                {initialValues.storedCode && (
-                  <div className="">
+      <div className="mt-10 flex flex-col items-center">
+        <div className=" bg-white  w-[600px] h-auto pb-8 rounded-2xl shadow-2xl border-2 px-10">
+          <div className="flex flex-col justify-center items-center my-10 ">
+            <img className="size-16" src={Password} alt="pinCodeImg" />
+            <h1 className="uppercase font-bold text-2xl"> Welcome</h1>
+          </div>
+          <p className="flex justify-center items-center mb-4">
+            Please enter your pin code:
+          </p>
+          <Formik initialValues={initialValues} onSubmit={handleSubmit}>
+            {({ values }) => (
+              <Form>
+                <div className="flex justify-center items-center gap-4 mb-10 ml-16 ">
+                  {values.pinCode.map((_, index) => (
                     <div
-                      className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${
-                        errors.currentCode && touched.currentCode
-                          ? "border-red-500"
-                          : "border-gray-300"
-                      }`}
+                      key={index}
+                      className="relative flex flex-col items-center"
                     >
-                      <img className="size-4 " src={Code} alt="password" />
-                      <Field
-                        className="input-trans focus:outline-none w-full h-12 rounded-lg"
-                        type="text"
-                        name="currentCode"
-                        placeholder=""
-                      />
-                      <label className="label-inline">Enter current code</label>
+                      <div className="">
+                        <Field name={`pinCode.${index}`}>
+                          {({ field, form }: FieldProps) => (
+                            <input
+                              {...field}
+                              className="size-10 border-2 border-gray-500 rounded-lg text-center outline-orange-500"
+                              type={hidden ? "text" : "password"}
+                              maxLength={1}
+                              onChange={(
+                                e: React.ChangeEvent<HTMLInputElement>
+                              ) => handleInput(e, field, form, index)}
+                              onPaste={(
+                                e: React.ClipboardEvent<HTMLInputElement>
+                              ) => handlePaste(e, form)}
+                              onKeyDown={(
+                                e: React.KeyboardEvent<HTMLInputElement>
+                              ) => handleKeyDown(e, field, form, index)}
+                              ref={(el) => (inputRefs.current[index] = el)}
+                            />
+                          )}
+                        </Field>
+                      </div>
                     </div>
-                    <ErrorMessage
-                      name="currentCode"
-                      component="div"
-                      className="absolute text-red-500 text-sm mt-1 ml-2"
-                    />
-                  </div>
-                )}
+                  ))}
 
-                <div className="">
-                  <div
-                    className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${
-                      errors.newCode && touched.newCode
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
-                  >
-                    <img className="size-4 " src={Code} alt="name" />
-
-                    <Field
-                      className="input-trans focus:outline-none w-full h-12 rounded-lg"
-                      type="text"
-                      name="newCode"
-                      placeholder=""
-                    />
-                    <label className="label-inline">New code</label>
-                  </div>
-                  <ErrorMessage
-                    name="newCode"
-                    component="div"
-                    className="absolute text-red-500 text-sm mt-1 ml-2 "
+                  <img
+                    className="size-6 cursor-pointer ml-6"
+                    src={hidden ? Hidden : View}
+                    alt="hiddenImg"
+                    onClick={toggleShowHide}
                   />
                 </div>
 
-                <div className="">
-                  <div
-                    className={`flex justify-start items-center pl-2 gap-2 border-2 rounded-lg shadow-md ${
-                      errors.confirmNewCode && touched.confirmNewCode
-                        ? "border-red-500"
-                        : "border-gray-300"
-                    }`}
+                <div className="flex justify-center">
+                  <button
+                    disabled={values.pinCode?.some((i) => !i)}
+                    className="h-10 w-80 bg-orange-500 rounded-2xl shadow-lg shadow-slate-400 text-white disabled:opacity-35"
+                    type="submit"
                   >
-                    <img className="size-4 " src={Code} alt="email" />
-                    <Field
-                      className="input-trans focus:outline-none  w-full h-12 rounded-lg"
-                      type="text"
-                      name="confirmNewCode"
-                      placeholder=""
-                    />
-                    <label className="label-inline">Confirm new code</label>
-                  </div>
-                  <ErrorMessage
-                    name="confirmNewCode"
-                    component="div"
-                    className="absolute text-red-500 text-sm mt-1 ml-2"
-                  />
+                    Submit pin code!
+                  </button>
                 </div>
-              </div>
-
-              <div className="flex justify-center">
-                <button
-                  className="h-10 w-80 bg-green-600 rounded-2xl shadow-lg shadow-slate-400 text-white "
-                  type="submit"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Submitting..." : "Enter your code!"}
-                </button>
-              </div>
-            </Form>
-          )}
-        </Formik>
+              </Form>
+            )}
+          </Formik>
+        </div>
       </div>
     </>
   );
 };
 
-export default SetCodePage;
+export default PinCode;
