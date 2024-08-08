@@ -8,30 +8,26 @@ export type TodoType = {
 };
 
 type TodoState = {
+  // CreateTodo and Todo
   todos: TodoType[];
-  statusCreate: boolean;
-  statusList: boolean;
+  isLoadingCreate: boolean;
+  isLoadingList: boolean;
   currentEditTodo: TodoType | null;
-  editedName: string;
-  newToDoString: string;
-  // PinCode
-  hidden: boolean;
 };
 
 const initialState: TodoState = {
+  // CreateTodo and Todo
   todos: [],
-  statusCreate: false,
-  statusList: false,
+  isLoadingCreate: false,
+  isLoadingList: false,
   currentEditTodo: null,
-  editedName: "",
-  newToDoString: "",
-  hidden: true,
 };
 
 const todoSlice = createSlice({
   name: "todos",
   initialState,
   reducers: {
+    // CreateTodo and Todo
     setTodos(state, action: PayloadAction<TodoType[]>) {
       state.todos = action.payload;
     },
@@ -46,47 +42,27 @@ const todoSlice = createSlice({
     deleteTodos(state, action: PayloadAction<string>) {
       state.todos = state.todos.filter((todo) => todo.id !== action.payload);
     },
-    isCurrentEditTodo(state, action: PayloadAction<TodoType | null>) {
+    setCurrentEditTodo(state, action: PayloadAction<TodoType | null>) {
       state.currentEditTodo = action.payload;
     },
-    isLoadingCreate(state) {
-      state.statusCreate = true;
+    setLoadingCreate(state, action: PayloadAction<boolean>) {
+      state.isLoadingCreate = action.payload;
     },
-    isNothingCreate(state) {
-      state.statusCreate = false;
-    },
-    isLoadingList(state) {
-      state.statusList = true;
-    },
-    isNothingList(state) {
-      state.statusList = false;
-    },
-    isEditedName(state, action: PayloadAction<string>) {
-      state.editedName = action.payload;
-    },
-    isNewToDoString(state, action: PayloadAction<string>) {
-      state.newToDoString = action.payload;
-    },
-    // PinCode
-    isHidden(state, action: PayloadAction<boolean>) {
-      state.hidden = action.payload;
+    setLoadingList(state, action: PayloadAction<boolean>) {
+      state.isLoadingList = action.payload;
     },
   },
 });
 
 export const {
+  // CreateTodo and Todo
   setTodos,
   addTodo,
   updateTodos,
   deleteTodos,
-  isCurrentEditTodo,
-  isLoadingCreate,
-  isNothingCreate,
-  isLoadingList,
-  isNothingList,
-  isEditedName,
-  isNewToDoString,
-  isHidden,
+  setCurrentEditTodo,
+  setLoadingCreate,
+  setLoadingList,
 } = todoSlice.actions;
 export default todoSlice.reducer;
 export type { TodoState };

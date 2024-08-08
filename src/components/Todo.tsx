@@ -1,19 +1,16 @@
 import { useDispatch, useSelector } from "react-redux";
 
 import axios from "axios";
-import React, { KeyboardEvent, useEffect, useRef } from "react";
+import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
 import classNames from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
 
 import {
   deleteTodos,
-  isCurrentEditTodo,
-  isLoadingList,
-  isNothingList,
+  setCurrentEditTodo,
   TodoType,
   updateTodos,
-  isEditedName,
 } from "../redux/Slice";
 import { AppDispatch, RootState } from "../redux/Store";
 
@@ -52,13 +49,7 @@ const Icon = ({
   );
 };
 
-export const Todo = ({
-  todo,
-  editMode,
-}: {
-  todo: TodoType;
-  editMode: boolean;
-}) => {
+export const Todo = ({ todo }: { todo: TodoType }) => {
   const { id, name, isCompleted, iTime } = todo;
   const itemTime = dayjs(iTime).format("MMM DD, YYYY");
 
@@ -66,19 +57,19 @@ export const Todo = ({
 
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
-  const editedName = useSelector((state: RootState) => state.todos.editedName);
-  const loading = useSelector(
-    (state: RootState) => state.todos.statusList === true
-  );
+  const [editedName, setEditedName] = useState(name);
+
+  const [loading, setLoading] = useState(false);
   const todos = useSelector((state: RootState) => state.todos.todos);
-  console.log(todos);
+
   const currentEditTodo = useSelector(
     (state: RootState) => state.todos.currentEditTodo
   );
-  console.log(currentEditTodo);
+
+  const isEditMode = currentEditTodo?.id === todo.id;
 
   useEffect(() => {
-    if (editMode && inputRef.current) {
+    if (isEditMode && inputRef.current) {
       inputRef.current.focus();
     }
     const textarea = inputRef.current;
@@ -86,21 +77,21 @@ export const Todo = ({
       textarea.focus();
       textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     }
-  }, [editMode]);
+  }, [isEditMode]);
 
-  // cancel (theo doi thay doi cua name, neu editmode = false thi dat lai gia tri cua SetEditmode = name)
+  // cancel (theo doi thay doi cua name, neu isEditmode = false thi dat lai gia tri cua setEditmode = name)
   useEffect(() => {
-    if (!editMode) {
-      dispatch(isEditedName(name));
+    if (!isEditMode) {
+      setEditedName(name);
     }
-  }, [editMode, name, dispatch]);
+  }, [isEditMode, name, dispatch]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    dispatch(isEditedName(e.target.value));
+    setEditedName(e.target.value);
   };
 
   const handleSaveClick = async () => {
-    dispatch(isLoadingList());
+    setLoading(true);
     await saveEditedToDo({
       id: id,
       name: editedName,
@@ -108,7 +99,7 @@ export const Todo = ({
       iTime,
     });
     cancelEdit();
-    dispatch(isNothingList());
+    setLoading(false);
   };
 
   // enter on keyboard
@@ -119,19 +110,19 @@ export const Todo = ({
   };
 
   const deleteToDo = async (todoId: string) => {
-    dispatch(isLoadingList());
+    setLoading(true);
+
     try {
       await axios.delete("https://dummyjson.com/todos/1");
       dispatch(deleteTodos(todoId));
     } catch (error) {
       console.log("Error deleting to-do:", error);
     } finally {
-      dispatch(isNothingList());
+      setLoading(false);
     }
   };
 
   const updateIsCompleted = async (todoId: string) => {
-    console.log("todoId--====>", todoId);
     const updatedTodo = todos.find((todo) => todo.id === todoId);
     if (updatedTodo) {
       try {
@@ -155,7 +146,6 @@ export const Todo = ({
   const saveEditedToDo = async (editedTodo: TodoType) => {
     try {
       await axios.put(`https://dummyjson.com/todos/1`, {
-        // id: editedTodo.id,
         todo: editedTodo.name,
         completed: editedTodo.isCompleted,
         userId: 1,
@@ -165,24 +155,18 @@ export const Todo = ({
     } catch (error) {
       console.error("Error saving edited to-do:", error);
     }
-    dispatch(isCurrentEditTodo(null));
+    dispatch(setCurrentEditTodo(null));
   };
 
   // cancel
   const cancelEdit = () => {
-    dispatch(isCurrentEditTodo(null));
+    dispatch(setCurrentEditTodo(null));
   };
 
   // cập nhật trạng thái chỉnh sửa
   const editToDo = (todo: TodoType) => {
-    dispatch(isCurrentEditTodo(todo));
+    dispatch(setCurrentEditTodo(todo));
   };
-
-  // localstores
-
-  // useEffect(() => {
-  //   localStorage.setItem("toDoList", JSON.stringify(todos));
-  // }, [todos]);
 
   return (
     <>
@@ -197,7 +181,7 @@ export const Todo = ({
                 updateIsCompleted={updateIsCompleted}
               />
             </button>
-            {editMode ? (
+            {isEditMode ? (
               <textarea
                 className="focus:outline-none xl:w-96 lg:w-72 md:w-40 h-20 bg-transparent "
                 value={editedName}
@@ -212,7 +196,7 @@ export const Todo = ({
             )}
           </div>
           <div className=" flex gap-1 mr-2">
-            {!editMode && (
+            {!isEditMode && (
               <div className=" flex justify-center items-center mr-2 text-xs opacity-40 font-semibold w-max">
                 {itemTime}
               </div>
@@ -232,13 +216,16 @@ export const Todo = ({
               {DeleteTD}
             </button>
 
-            {editMode ? (
+            {isEditMode ? (
               <div className="flex gap-1">
                 {/* save */}
                 <button
                   className={classNames(
-                    " text-white px-2 py-1 rounded-lg max-h-8",
-                    { "bg-gray-600": loading, "bg-green-600": !loading }
+                    "text-white px-2 py-1 rounded-lg max-h-8",
+                    {
+                      "bg-gray-600": loading,
+                      "bg-green-600": !loading,
+                    }
                   )}
                   type="button"
                   onClick={handleSaveClick}
