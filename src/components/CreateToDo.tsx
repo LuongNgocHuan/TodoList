@@ -63,7 +63,7 @@ const CreateToDo = () => {
     <>
       <div className=" mt-4 mx-4 ">
         <div className="flex flex-col justify-center items-center my-10">
-          <img className="size-16" src="../assets/img/list.png" alt="" />
+          <img className="size-16" src={List} alt="" />
           <p className="flex justify-center text-3xl font-bold mb-2">
             Create Your Todo-list
           </p>
