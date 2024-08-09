@@ -1,15 +1,25 @@
-import React, { useState, useRef, useEffect } from "react";
-import { TodoType } from "../pages/TodoPage";
-import { KeyboardEvent } from "react";
+import { useDispatch, useSelector } from "react-redux";
+
+import axios from "axios";
+import React, { KeyboardEvent, useEffect, useRef, useState } from "react";
+import classNames from "classnames";
 import dayjs from "dayjs";
 import relativeTime from "dayjs/plugin/relativeTime";
+
+import {
+  deleteTodos,
+  setCurrentEditTodo,
+  TodoType,
+  updateTodos,
+} from "../redux/Slice";
+import { AppDispatch, RootState } from "../redux/Store";
+
 import {
   CancleTD,
   CompletedFalse,
   CompletedTrue,
   DeleteTD,
   EditTD,
-  LoadingAM,
   SaveTD,
 } from "./SVG/SVG";
 
@@ -38,31 +48,28 @@ const Icon = ({
     </div>
   );
 };
-export const Todo = ({
-  todo,
-  updateIsCompleted,
-  deleteToDo,
 
-  editToDo,
-  saveEditedToDo,
-  cancelEdit,
-  editMode,
-}: {
-  todo: TodoType;
-  updateIsCompleted: (todoId: string) => void;
-  deleteToDo: (todoId: string) => void;
+export const Todo = ({ todo }: { todo: TodoType }) => {
+  const { id, name, isCompleted, iTime } = todo;
+  const itemTime = dayjs(iTime).format("MMM DD, YYYY");
 
-  editToDo: (todo: TodoType) => void;
-  saveEditedToDo: (editedTodo: TodoType) => void;
-  cancelEdit: () => void;
-  editMode: boolean;
-}) => {
-  const { id, name, isCompleted, iTime, loading } = todo;
-  // edit
-  const [editedName, setEditedName] = useState(name);
+  const dispatch: AppDispatch = useDispatch();
+
   const inputRef = useRef<HTMLTextAreaElement>(null);
+
+  const [editedName, setEditedName] = useState(name);
+
+  const [loading, setLoading] = useState(false);
+  const todos = useSelector((state: RootState) => state.todos.todos);
+
+  const currentEditTodo = useSelector(
+    (state: RootState) => state.todos.currentEditTodo
+  );
+
+  const isEditMode = currentEditTodo?.id === todo.id;
+
   useEffect(() => {
-    if (editMode && inputRef.current) {
+    if (isEditMode && inputRef.current) {
       inputRef.current.focus();
     }
     const textarea = inputRef.current;
@@ -70,28 +77,29 @@ export const Todo = ({
       textarea.focus();
       textarea.setSelectionRange(textarea.value.length, textarea.value.length);
     }
-  }, [editMode]);
+  }, [isEditMode]);
 
-  // cancel (theo doi thay doi cua name, neu editmode = false thi dat lai gia tri cua SetEditmode = name)
+  // cancel (theo doi thay doi cua name, neu isEditmode = false thi dat lai gia tri cua setEditmode = name)
   useEffect(() => {
-    if (!editMode) {
+    if (!isEditMode) {
       setEditedName(name);
     }
-  }, [editMode, name]);
+  }, [isEditMode, name, dispatch]);
 
   const handleNameChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     setEditedName(e.target.value);
   };
 
-  const handleSaveClick = () => {
-    saveEditedToDo({
+  const handleSaveClick = async () => {
+    setLoading(true);
+    await saveEditedToDo({
       id: id,
       name: editedName,
       isCompleted,
       iTime,
-      loading
     });
     cancelEdit();
+    setLoading(false);
   };
 
   // enter on keyboard
@@ -101,7 +109,64 @@ export const Todo = ({
     }
   };
 
-  const itemTime = dayjs(iTime).format("MMM DD, YYYY");
+  const deleteToDo = async (todoId: string) => {
+    setLoading(true);
+
+    try {
+      await axios.delete("https://dummyjson.com/todos/1");
+      dispatch(deleteTodos(todoId));
+    } catch (error) {
+      console.log("Error deleting to-do:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateIsCompleted = async (todoId: string) => {
+    const updatedTodo = todos.find((todo) => todo.id === todoId);
+    if (updatedTodo) {
+      try {
+        await axios.put(`https://dummyjson.com/todos/1`, {
+          todo: updatedTodo.name,
+          completed: !updatedTodo.isCompleted,
+          userId: 1,
+        });
+        dispatch(
+          updateTodos({
+            ...updatedTodo,
+            isCompleted: !updatedTodo.isCompleted,
+          })
+        );
+      } catch (error) {
+        console.error("Error updating todo:", error);
+      }
+    }
+  };
+
+  const saveEditedToDo = async (editedTodo: TodoType) => {
+    try {
+      await axios.put(`https://dummyjson.com/todos/1`, {
+        todo: editedTodo.name,
+        completed: editedTodo.isCompleted,
+        userId: 1,
+      });
+
+      dispatch(updateTodos(editedTodo));
+    } catch (error) {
+      console.error("Error saving edited to-do:", error);
+    }
+    dispatch(setCurrentEditTodo(null));
+  };
+
+  // cancel
+  const cancelEdit = () => {
+    dispatch(setCurrentEditTodo(null));
+  };
+
+  // cập nhật trạng thái chỉnh sửa
+  const editToDo = (todo: TodoType) => {
+    dispatch(setCurrentEditTodo(todo));
+  };
 
   return (
     <>
@@ -116,7 +181,7 @@ export const Todo = ({
                 updateIsCompleted={updateIsCompleted}
               />
             </button>
-            {editMode ? (
+            {isEditMode ? (
               <textarea
                 className="focus:outline-none xl:w-96 lg:w-72 md:w-40 h-20 bg-transparent "
                 value={editedName}
@@ -131,7 +196,7 @@ export const Todo = ({
             )}
           </div>
           <div className=" flex gap-1 mr-2">
-            {!editMode && (
+            {!isEditMode && (
               <div className=" flex justify-center items-center mr-2 text-xs opacity-40 font-semibold w-max">
                 {itemTime}
               </div>
@@ -139,33 +204,48 @@ export const Todo = ({
 
             {/* delete */}
             <button
-              className={
-                isCompleted
-                  ? "hidden"
-                  : " bg-red-500 text-white px-2 py-1 rounded-lg max-h-8"
-              }
+              className={classNames("text-white px-2 py-1 rounded-lg max-h-8", {
+                hidden: isCompleted,
+                "bg-gray-600": loading,
+                "bg-red-600": !loading,
+              })}
               type="button"
               onClick={() => deleteToDo(id)}
               disabled={loading}
             >
-              {loading ? LoadingAM : DeleteTD}
+              {DeleteTD}
             </button>
 
-            {editMode ? (
+            {isEditMode ? (
               <div className="flex gap-1">
                 {/* save */}
                 <button
-                  className="bg-green-600 text-white px-2 py-1 rounded-lg max-h-8"
+                  className={classNames(
+                    "text-white px-2 py-1 rounded-lg max-h-8",
+                    {
+                      "bg-gray-600": loading,
+                      "bg-green-600": !loading,
+                    }
+                  )}
                   type="button"
                   onClick={handleSaveClick}
+                  disabled={loading}
                 >
                   {SaveTD}
                 </button>
                 {/* cancel */}
                 <button
-                  className="bg-blue-500 text-white px-2 py-1 rounded-lg max-h-8"
+                  className={classNames(
+                    "text-white px-2 py-1 rounded-lg max-h-8",
+                    {
+                      hidden: isCompleted,
+                      "bg-gray-600": loading,
+                      "bg-blue-600": !loading,
+                    }
+                  )}
                   type="button"
                   onClick={cancelEdit}
+                  disabled={loading}
                 >
                   {CancleTD}
                 </button>
@@ -173,18 +253,22 @@ export const Todo = ({
             ) : (
               // edit
               <button
-                className={
-                  isCompleted
-                    ? "hidden"
-                    : "bg-blue-500 text-white px-2 py-1 rounded-lg max-h-8"
-                }
+                className={classNames(
+                  "text-white px-2 py-1 rounded-lg max-h-8",
+                  {
+                    hidden: isCompleted,
+                    "bg-gray-600": loading,
+                    "bg-blue-600": !loading,
+                  }
+                )}
                 type="button"
                 onClick={() => {
-                  editToDo({ id: id, name, isCompleted, iTime, loading });
+                  editToDo({ id: id, name, isCompleted, iTime });
                   if (inputRef.current) {
                     inputRef.current.focus();
                   }
                 }}
+                disabled={loading}
               >
                 {EditTD}
               </button>

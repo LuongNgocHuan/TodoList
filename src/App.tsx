@@ -1,4 +1,5 @@
 import { Routes, Route } from 'react-router-dom'
+
 import NoPage from './pages/NoPage'
 import SetCodePage from './pages/SetCodePage'
 import PinCode from './pages/PinCode'
